@@ -68,9 +68,8 @@ class SearchPRM:
         parse_line = ""
         for line in prmfile:
             # Strip comments
-            c_idx = line.find('#')
-            if(c_idx >= 0):
-                line = line[:c_idx]
+            if '#' in line:
+                line, _ = line.split('#', 1)
 
             parse_line += line.strip()
 
@@ -149,9 +148,7 @@ nondim_dict = {
     'Ra':
     sympy.S('g*rho_0^2*alpha_v*(T_h-T_l)*b^3*c_p/(mu*k)'),
     'B':
-    sympy.S('Delta_rho/(rho_0*alpha_v*(T_h-T_l))'),
-    'Pr':
-    sympy.S('c_p*mu/rho_0')
+    sympy.S('Delta_rho/(rho_0*alpha_v*(T_h-T_l))')
 }
 for k in prm_const_dict:
     (defn, loc) = prm_const_dict[k]

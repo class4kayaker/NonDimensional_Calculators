@@ -163,9 +163,11 @@ for k in nondim_dict:
 
 
 for f in sys.argv[1:]:
+    print("File {}:\n".format(f))
     with open(f, 'r') as prm_file:
         subs_list = BouySearch.get_prm_vals(prm_file).items()
         print('Values:')
         BouyParam.print_constants(subs_list)
         print('Nondims:')
         BouyParam.print_nondim(subs_list)
+    print('-'*10)

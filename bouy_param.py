@@ -35,12 +35,12 @@ class NonDim:
             val = expr.subs(subs_list)
             if isinstance(val, sympy.Float):
                 if(verb):
-                    print("{:5}={:13e}={}".format(c,
-                                                  float(val),
-                                                  sympy.latex(expr)))
+                    print("{:5}={:10.2g}={}".format(c,
+                                                    float(val),
+                                                    sympy.latex(expr)))
                 else:
-                    print("{:5}={:13e}".format(c,
-                                               float(val)))
+                    print("{:5}={:10.2g}".format(c,
+                                                 float(val)))
             else:
                 if(verb):
                     print("{:5}={}={}".format(c, val, sympy.latex(expr)))

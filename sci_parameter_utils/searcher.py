@@ -20,17 +20,23 @@ def get_searcher(name):
     return _searchers[name]
 
 
-def register_searcher(cls):
-    if cls.name in _searchers:
+def register_searcher(cls, name, extn):
+    if name in _searchers:
         raise SearcherCollision(
-            "Name {} is already registered".format(cls.name)
+            "Name {} is already registered".format(name)
         )
-    _searchers[cls.name] = cls
-    if cls.extn in _extns:
-        _extns[cls.extn] = False
+    _searchers[name] = cls
+    if extn in _extns:
+        _extns[extn] = False
     else:
-        _extns[cls.extn] = cls.name
-    return cls
+        _extns[extn] = name
+
+
+def register_searcher_dec(name, extn):
+    def internal_dec(cls):
+        register_searcher(cls, name, extn)
+        return cls
+    return internal_dec
 
 
 class NoSearcherFound(Exception):
@@ -74,11 +80,8 @@ class Searcher:
         )
 
 
-@register_searcher
+@register_searcher_dec("dealIIPRM", "prm")
 class SearchPRM(Searcher):
-    name = "dealIIPRM"
-    extn = "prm"
-
     def parse_file(self, prmfile):
         values = {}
         position = []

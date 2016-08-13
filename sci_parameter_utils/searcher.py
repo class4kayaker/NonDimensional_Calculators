@@ -1,8 +1,36 @@
 import sympy
 
 
-searchers = {}
-hints = {}
+_searchers = {}
+_extns = {}
+
+
+def get_searcher_from_extn(extn):
+    if extn not in _extns:
+        raise NoSearcherFound("Hint {} not known".format(extn))
+    searcher_name = _extns[extn]
+    if not searcher_name:
+        raise NoSearcherFound("Hint {} not known".format(extn))
+    return get_searcher(searcher_name)
+
+
+def get_searcher(name):
+    if name not in _searchers:
+        raise NoSearcherFound("Searcher {} not known".format(name))
+    return _searchers[name]
+
+
+def register_searcher(cls):
+    if cls.name in _searchers:
+        raise SearcherCollision(
+            "Name {} is already registered".format(cls.name)
+        )
+    _searchers[cls.name] = cls
+    if cls.extn in _extns:
+        _extns[cls.extn] = False
+    else:
+        _extns[cls.extn] = cls.name
+    return cls
 
 
 class NoSearcherFound(Exception):
@@ -46,7 +74,11 @@ class Searcher:
         )
 
 
+@register_searcher
 class SearchPRM(Searcher):
+    name = "dealIIPRM"
+    extn = "prm"
+
     def parse_file(self, prmfile):
         values = {}
         position = []
@@ -99,30 +131,3 @@ class SearchPRM(Searcher):
                 raise ValueError(errmsg)
 
         return(values)
-
-
-def get_searcher_from_hint(hint):
-    if hint not in hints:
-        raise NoSearcherFound("Hint {} not known".format(hint))
-    searcher_name = hints[hint]
-    if not searcher_name:
-        raise NoSearcherFound("Hint {} not known".format(hint))
-    return get_searcher(searcher_name)
-
-
-def get_searcher(name):
-    if name not in searchers:
-        raise NoSearcherFound("Searcher {} not known".format(name))
-    return searchers[name]
-
-
-def register_searcher(cls, name, hint):
-    if name in searchers:
-        raise SearcherCollision("Name {} is already registered".format(name))
-    searchers[name] = cls
-    if hint in hints:
-        hints[hint] = False
-    else:
-        hints[hint] = name
-
-register_searcher(SearchPRM, "DealIIPRM", 'prm')

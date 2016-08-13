@@ -43,10 +43,15 @@ def print_ndims(ndims, verb=False):
 @click.option('--locs', '-l', type=click.File('r'),
               required=True,
               help="Parameter location files")
+@click.option('--print-consts/--no-print-consts', default=True,
+              help="Indicate whether to include constants in output")
+@click.option('--print-nondims/--no-print-nondims', default=True,
+              help="Indicate whether to include nondimensional "
+              "parameters in output")
 @click.argument('prmfiles', type=click.File('r'), nargs=-1)
-def parse_nondim_params(prmfiles, defs, locs):
+def parse_nondim_params(prmfiles, defs, locs, print_consts, print_nondims):
     """Prints constants and derived nondimensional quantities
-    defined in PRMFILES files"""
+    defined in PRMFILES"""
     ndim = sci_parameter_utils.nondim.NonDim()
     ndim.add_from_dict(get_dict_from_file(defs))
 
@@ -54,18 +59,20 @@ def parse_nondim_params(prmfiles, defs, locs):
     searcher = False
     fn1 = prmfiles[0].name
     hInd = fn1.rfind('.', -4)
-    hint = ""
+    extn = ""
     if(hInd > 0):
-        hint = fn1[hInd+1:]
-    searcher = sci_parameter_utils.searcher.get_searcher_from_hint(hint)()
+        extn = fn1[hInd+1:]
+    searcher = sci_parameter_utils.searcher.get_searcher_from_extn(extn)()
     searcher.add_from_dict(get_dict_from_file(locs))
 
     for f in prmfiles:
         click.echo("Input {}:".format(f.name))
         subs_list = searcher.parse_file(f)
-        print_constants(subs_list, ndim)
+        if print_consts:
+            print_constants(subs_list, ndim)
         ndims = ndim.get_nondims(subs_list)
-        print_ndims(ndims)
+        if print_nondims:
+            print_ndims(ndims)
         click.echo('-----')
 
 

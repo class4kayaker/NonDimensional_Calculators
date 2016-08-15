@@ -2,10 +2,9 @@ import sympy
 
 
 class NonDim:
-    def __init__(self):
-        self.constants = {}
-        self.nondim = {}
-        pass
+    constants = {}
+    nondim = {}
+    scales = {}
 
     def add_from_dict(self, p_dict):
         if 'constants' in p_dict:
@@ -27,6 +26,14 @@ class NonDim:
                     sympy.S(nondim_dict[k])
                 )
 
+        if 'scales' in p_dict:
+            scales_dict = p_dict['scales']
+            for k in scales_dict:
+                self.add_scale(
+                    k,
+                    sympy.S(scales_dict[k])
+                )
+
     def add_constant(self, var, descrip):
         if not isinstance(var, sympy.Symbol):
             raise ValueError("Argument var must be a sympy Symbol")
@@ -37,6 +44,9 @@ class NonDim:
 
     def add_nondim_param(self, label, expr):
         self.nondim[label] = expr
+
+    def add_scale(self, name, expr):
+        self.scales[name] = expr
 
     def get_const_desc(self, v):
         if v in self.constants:
@@ -50,3 +60,11 @@ class NonDim:
             val = expr.subs(subs)
             ndims.append((c, val, expr))
         return ndims
+
+    def get_scales(self, subs):
+        scales = []
+        for c in self.scales:
+            expr = self.scales[c]
+            val = expr.subs(subs)
+            scales.append((c, val, expr))
+        return scales

@@ -12,32 +12,7 @@ def get_dict_from_file(fobj):
     return json.load(fobj)
 
 
-def print_constants(subs, ndim, verb=False):
-    click.echo('Constants:')
-    for v, n in subs.items():
-        tex_var = sympy.latex(v)
-        defn = ndim.get_const_desc(v)
-        line = "   {:15}= {:13g}".format(tex_var, n)
-        if verb and defn:
-            line += ": {}".format(defn)
-        click.echo(line)
-
-
-def print_ndims(ndims, verb=False):
-    click.echo('Nondimensional Parameters:')
-    for c, val, expr in ndims:
-        line = "   {:5}".format(c)
-        if isinstance(val, sympy.Float):
-            line += "={:10.2g}".format(float(val))
-        else:
-            line += "={}".format(val)
-        if verb:
-            line += "={}".format(expr)
-        click.echo(line)
-
-
 def list_scales(scales, verb=False):
-    click.echo('Scales:')
     for c, val, expr in scales:
         line = "   {:5}".format(c)
         if isinstance(val, sympy.Float):
@@ -86,11 +61,14 @@ def parse_nondim_params(prmfiles, defs, locs,
         click.echo("Input {}:".format(f.name))
         subs_list = searcher.parse_file(f)
         if print_consts:
-            print_constants(subs_list, ndim)
+            click.echo('Constants:')
+            ndim.write_consts(click.get_text_stream('stdout'), subs_list)
         if print_nondims:
-            print_ndims(ndim.get_nondims(subs_list))
+            click.echo('Nondimensional Parameters:')
+            ndim.write_nondim(click.get_text_stream('stdout'), subs_list)
         if print_scales:
-            list_scales(ndim.get_scales(subs_list))
+            click.echo('Scales:')
+            ndim.write_scales(click.get_text_stream('stdout'), subs_list)
         click.echo('-----')
 
 

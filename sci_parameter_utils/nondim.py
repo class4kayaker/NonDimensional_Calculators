@@ -53,6 +53,15 @@ class NonDim:
             return self.constants[v]
         return None
 
+    def write_consts(self, ofile, subs, verb=False):
+        for v, n in subs.items():
+            tex_var = sympy.latex(v)
+            defn = self.get_const_desc(v)
+            ofile.write("   {:15}= {:13g}".format(tex_var, n))
+            if verb and defn:
+                ofile.write(": {}".format(defn))
+            ofile.write("\n")
+
     def get_nondims(self, subs):
         ndims = []
         for c in self.nondim:
@@ -61,6 +70,17 @@ class NonDim:
             ndims.append((c, val, expr))
         return ndims
 
+    def write_nondim(self, ofile, subs, verb=False):
+        for c, val, expr in self.get_nondims(subs):
+            ofile.write("   {:5}".format(c))
+            if isinstance(val, sympy.Float):
+                ofile.write("={:10.2g}".format(float(val)))
+            else:
+                ofile.write("={}".format(val))
+            if verb:
+                ofile.write("={}".format(expr))
+            ofile.write("\n")
+
     def get_scales(self, subs):
         scales = []
         for c in self.scales:
@@ -68,3 +88,14 @@ class NonDim:
             val = expr.subs(subs)
             scales.append((c, val, expr))
         return scales
+
+    def write_scales(self, ofile, subs, verb=False):
+        for c, val, expr in self.get_scales(subs):
+            ofile.write("   {:15}".format(c))
+            if isinstance(val, sympy.Float):
+                ofile.write("={:10.2g}".format(float(val)))
+            else:
+                ofile.write("={}".format(val))
+            if verb:
+                ofile.write("={}".format(expr))
+            ofile.write("\n")

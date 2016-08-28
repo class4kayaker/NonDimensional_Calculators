@@ -1,5 +1,4 @@
 import click
-import sympy
 import json
 import sci_parameter_utils.nondim
 import sci_parameter_utils.searcher
@@ -7,21 +6,12 @@ import yaml
 
 
 def get_dict_from_file(fobj):
+    """
+    Get dictionary from a file by extn
+    """
     if fobj.name.endswith('.yaml'):
         return yaml.safe_load(fobj)
     return json.load(fobj)
-
-
-def list_scales(scales, verb=False):
-    for c, val, expr in scales:
-        line = "   {:5}".format(c)
-        if isinstance(val, sympy.Float):
-            line += "={:10.2g}".format(float(val))
-        else:
-            line += "={}".format(val)
-        if verb:
-            line += "={}".format(expr)
-        click.echo(line)
 
 
 @click.command()

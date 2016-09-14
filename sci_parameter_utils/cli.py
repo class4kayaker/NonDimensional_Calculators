@@ -2,6 +2,8 @@ import click
 import json
 import sci_parameter_utils.nondim
 import sci_parameter_utils.searcher
+import sci_parameter_utils.template
+import sci_parameter_utils.templater
 import yaml
 
 
@@ -14,7 +16,72 @@ def get_dict_from_file(fobj):
     return json.load(fobj)
 
 
-@click.command()
+def get_extn_from_file(fobj):
+    fn = fobj.name
+    hInd = fn.rfind('.', -4)
+    if(hInd > 0):
+        return fn[hInd+1:]
+    return ""
+
+
+@click.group()
+def cli_main():
+    """Set of useful parameter utilities"""
+
+
+@cli_main.command()
+@click.option('--params', '-p', type=click.File('r'),
+              required=True,
+              help="Parmeter definition file")
+@click.option('--ifile', '-i', type=click.File('r'),
+              help="Input values file")
+@click.option('--out', '-o', default="",
+              help="Name format for output file")
+@click.option('--interact/--no-interact', default=False,
+              help="Allow interactive value supply")
+@click.argument('template', type=click.File('r'))
+def template(params, ifile, out, interact, template):
+    """Generate parameter files from TEMPLATE"""
+    eset = sci_parameter_utils.template.TemplateElemSet(
+        get_dict_from_file(params))
+    iReq = eset.get_inputs()
+    if ifile:
+        iList = get_dict_from_file(ifile)
+        if not iList:
+            iList = [{}]
+    else:
+        iList = [{}]
+
+    templater = False
+    extn = get_extn_from_file(template)
+    templater = sci_parameter_utils.templater.get_templater_from_extn(extn)()
+    if not out:
+        out = templater.get_fn_suggest(template)
+    if not out:
+        out = 'output.'+extn
+
+    for d in iList:
+        ivals = {}
+        click.echo('Getting input values')
+        for k in iReq:
+            if k in d:
+                ivals[k] = eset.validate(k, d[k])
+            elif interact:
+                p = "{}".format(k)
+                ivals[k] = eset.validate(k, click.prompt(p))
+            else:
+                raise RuntimeError("No value supplied for {}".format(k))
+
+        eset.compute_strs(ivals)
+
+        fn = templater.replace(out, ivals)
+        click.echo(fn)
+        templater.template_file(template,
+                                click.open_file(fn, 'w'),
+                                ivals)
+
+
+@cli_main.command('print')
 @click.option('--defs', '-d', type=click.File('r'),
               required=True,
               help="Parmeter definition file")
@@ -39,11 +106,7 @@ def parse_nondim_params(prmfiles, defs, locs,
 
     # Find searcher using first filename as hint
     searcher = False
-    fn1 = prmfiles[0].name
-    hInd = fn1.rfind('.', -4)
-    extn = ""
-    if(hInd > 0):
-        extn = fn1[hInd+1:]
+    extn = get_extn_from_file(prmfiles[0])
     searcher = sci_parameter_utils.searcher.get_searcher_from_extn(extn)()
     searcher.add_from_dict(get_dict_from_file(locs))
 
@@ -63,4 +126,4 @@ def parse_nondim_params(prmfiles, defs, locs,
 
 
 if(__name__ == "__main__"):
-    parse_nondim_params()
+    cli_main()

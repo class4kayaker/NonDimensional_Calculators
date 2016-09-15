@@ -82,6 +82,7 @@ def template(params, ifile, out, interact, template):
 
             fn = templater.replace(out, ivals)
             click.echo(fn)
+            template.seek(0, 0)
             templater.template_file(template,
                                     click.open_file(fn, 'w'),
                                     ivals)

@@ -85,7 +85,9 @@ class TemplatePRM(Templater):
             # Strip comments
             if '#' in line:
                 line, comment = line.split('#', 1)
-                ofile.write('# '+comment.strip())
+                ofile.write('# '+comment.strip()+'\n')
+                if not line.strip():
+                    continue
 
             parse_line += line.strip()
 

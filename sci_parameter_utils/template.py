@@ -8,9 +8,18 @@ class TemplateElemSet:
         for k in idict:
             e = idict[k]
             e['name'] = k
-            tstr = e['type']
-            del e['type']
-            self.elements[k] = create_elem_by_type(tstr)(**e)
+            try:
+                tstr = e['type']
+                del e['type']
+            except KeyError:
+                raise InvalidTemplateError("No type for element {}".format(k))
+            cst = elem_constructor_by_type(tstr)
+            try:
+                self.elements[k] = cst(**e)
+            except TypeError as e:
+                raise InvalidTemplateError(
+                    "Error constructing element {} of type {}: {}"
+                    .format(k, tstr, e))
         self._compute_order()
         self._collect_inputs()
 
@@ -71,7 +80,7 @@ def register_template_elem_type(etype):
     return internal_dec
 
 
-def create_elem_by_type(tstr, **args):
+def elem_constructor_by_type(tstr, **args):
     if tstr in _elem_types:
         return _elem_types[tstr]
     else:
@@ -153,7 +162,7 @@ class StrElem(InputElem):
 
 @register_template_elem_type('expr')
 class ExprElem(TemplateElem):
-    def __init__(self, name, fmt, expr):
+    def __init__(self, name, expr, fmt='{}'):
         self.name = name
         self.expr = sympy.S(expr)
         self.fmt = fmt
@@ -176,6 +185,9 @@ class ExprElem(TemplateElem):
             var_vals[k] = values[str(k)]
         return self.expr.subs(var_vals)
 
+    def do_format(self, value):
+        return self.fmt.format(value)
+
 
 @register_template_elem_type('fmt')
 class FmtElem(TemplateElem):
@@ -192,7 +204,8 @@ class FmtElem(TemplateElem):
     def get_dependencies(self):
         deps = set()
         for t in string.Formatter().parse(self.expr):
-            deps.add(t[1])
+            if t[1]:
+                deps.add(t[1])
         return deps
 
     def evaluate(self, values):
@@ -202,4 +215,5 @@ class FmtElem(TemplateElem):
 @register_template_elem_type('fname')
 class FNFmtElem(FmtElem):
     def evaluate(self, values):
-        return self.expr.format(**values).translate(str.maketrans('./', '__'))
+        fn_transl = string.maketrans('./', '__')
+        return self.expr.format(**values).translate(fn_transl)

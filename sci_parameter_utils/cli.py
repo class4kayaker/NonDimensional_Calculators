@@ -42,8 +42,12 @@ def cli_main():
 @click.argument('template', type=click.File('r'))
 def template(params, ifile, out, interact, template):
     """Generate parameter files from TEMPLATE"""
-    eset = sci_parameter_utils.template.TemplateElemSet(
-        get_dict_from_file(params))
+    try:
+        eset = sci_parameter_utils.template.TemplateElemSet(
+            get_dict_from_file(params))
+    except RuntimeError as e:
+        click.echo("Error setting up template: {}".format(e))
+        raise click.Abort()
     iReq = eset.get_inputs()
     if ifile:
         iList = get_dict_from_file(ifile)
@@ -70,15 +74,20 @@ def template(params, ifile, out, interact, template):
                 p = "{}".format(k)
                 ivals[k] = eset.validate(k, click.prompt(p))
             else:
-                raise RuntimeError("No value supplied for {}".format(k))
+                click.echo("No value supplied for {}".format(k))
+                raise click.Abort()
 
-        eset.compute_strs(ivals)
+        try:
+            eset.compute_strs(ivals)
 
-        fn = templater.replace(out, ivals)
-        click.echo(fn)
-        templater.template_file(template,
-                                click.open_file(fn, 'w'),
-                                ivals)
+            fn = templater.replace(out, ivals)
+            click.echo(fn)
+            templater.template_file(template,
+                                    click.open_file(fn, 'w'),
+                                    ivals)
+        except RuntimeError as e:
+            click.echo("{}".format(e))
+            raise click.Abort()
 
 
 @cli_main.command('print')

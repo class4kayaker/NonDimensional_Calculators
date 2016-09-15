@@ -85,7 +85,7 @@ class TemplatePRM(Templater):
             # Strip comments
             if '#' in line:
                 line, comment = line.split('#', 1)
-                ofile.write('#'+comment+'\n')
+                ofile.write('# '+comment.strip())
 
             parse_line += line.strip()
 
@@ -93,6 +93,7 @@ class TemplatePRM(Templater):
                 continue
 
             if not parse_line:
+                ofile.write('\n')
                 continue
 
             if(parse_line == 'end'):

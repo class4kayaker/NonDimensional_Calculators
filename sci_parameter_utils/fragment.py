@@ -2,9 +2,6 @@ import sympy
 import string
 
 
-_template_elem_types = {}
-
-
 def _register_by_type(etype, store_dict):
     def internal_dec(cls):
         store_dict[etype] = cls
@@ -13,7 +10,7 @@ def _register_by_type(etype, store_dict):
 
 
 def _return_elem_by_type(store_dict, tstr, name, args):
-    if tstr in _template_elem_types:
+    if tstr in store_dict:
         cst = store_dict[tstr]
         try:
             return cst(name, **args)

@@ -6,19 +6,14 @@ class TemplateElemSet:
         self.elements = {}
         for k in idict:
             e = idict[k]
-            e['name'] = k
             try:
                 tstr = e['type']
                 del e['type']
             except KeyError:
                 raise InvalidTemplateError("No type for element {}".format(k))
-            cst = sci_parameter_util.fragment.elem_constructor_by_type(tstr)
-            try:
-                self.elements[k] = cst(**e)
-            except TypeError as e:
-                raise InvalidTemplateError(
-                    "Error constructing element {} of type {}: {}"
-                    .format(k, tstr, e))
+            self.elements[k] = (
+                sci_parameter_util.fragment
+                .TemplateElem.elem_by_type(tstr, k, e))
         self._compute_order()
         self._collect_inputs()
 

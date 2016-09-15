@@ -2,19 +2,25 @@ import sympy
 import string
 
 
-_elem_types = {}
+_template_elem_types = {}
 
 
-def register_template_elem_type(etype):
+def _register_by_type(etype, store_dict):
     def internal_dec(cls):
-        _elem_types[etype] = cls
+        store_dict[etype] = cls
         return cls
     return internal_dec
 
 
-def elem_constructor_by_type(tstr, **args):
-    if tstr in _elem_types:
-        return _elem_types[tstr]
+def _return_elem_by_type(store_dict, tstr, name, args):
+    if tstr in _template_elem_types:
+        cst = store_dict[tstr]
+        try:
+            return cst(name, **args)
+        except TypeError as e:
+            raise InvalidElementError(
+                "Error constructing element {} of type {}: {}"
+                .format(name, tstr, e))
     else:
         raise InvalidElementError('Unknown type {}'.format(tstr))
 
@@ -28,6 +34,19 @@ class InvalidInputError(RuntimeError):
 
 
 class TemplateElem:
+    _elem_types = {}
+
+    @staticmethod
+    def register_type(tstr):
+        _register_by_type(tstr, TemplateElem._elem_types)
+
+    @staticmethod
+    def elem_by_type(tstr, name, args):
+        _return_elem_by_type(TemplateElem._elem_types,
+                             tstr,
+                             name,
+                             args)
+
     def get_name(self):
         """Method returning name of template element"""
         raise NotImplementedError()
@@ -65,7 +84,7 @@ class InputElem(TemplateElem):
         return self.fmt.format(value)
 
 
-@register_template_elem_type('int')
+@TemplateElem.register_type('int')
 class IntElem(InputElem):
     def validate(self, istr):
         try:
@@ -74,7 +93,7 @@ class IntElem(InputElem):
             raise InvalidInputError("Bad value for {}".format(self.name))
 
 
-@register_template_elem_type('float')
+@TemplateElem.register_type('float')
 class FloatElem(InputElem):
     def validate(self, istr):
         try:
@@ -83,7 +102,7 @@ class FloatElem(InputElem):
             raise InvalidInputError("Bad value for {}".format(self.name))
 
 
-@register_template_elem_type('str')
+@TemplateElem.register_type('str')
 class StrElem(InputElem):
     def validate(self, istr):
         try:
@@ -92,7 +111,7 @@ class StrElem(InputElem):
             raise InvalidInputError("Bad value for {}".format(self.name))
 
 
-@register_template_elem_type('expr')
+@TemplateElem.register_type('expr')
 class ExprElem(TemplateElem):
     def __init__(self, name, expr, fmt='{}'):
         self.name = name
@@ -121,7 +140,7 @@ class ExprElem(TemplateElem):
         return self.fmt.format(value)
 
 
-@register_template_elem_type('fmt')
+@TemplateElem.register_type('fmt')
 class FmtElem(TemplateElem):
     def __init__(self, name, expr):
         self.name = name
@@ -144,7 +163,7 @@ class FmtElem(TemplateElem):
         return self.expr.format(values)
 
 
-@register_template_elem_type('fname')
+@TemplateElem.register_type('fname')
 class FNFmtElem(FmtElem):
     def evaluate(self, values):
         fn_transl = string.maketrans('./', '__')

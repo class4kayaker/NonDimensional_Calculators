@@ -3,17 +3,9 @@ import sci_parameter_util.fragment
 
 class TemplateElemSet:
     def __init__(self, idict):
-        self.elements = {}
-        for k in idict:
-            e = idict[k]
-            try:
-                tstr = e['type']
-                del e['type']
-            except KeyError:
-                raise InvalidTemplateError("No type for element {}".format(k))
-            self.elements[k] = (
-                sci_parameter_util.fragment
-                .TemplateElem.elem_by_type(tstr, k, e))
+        self.elements = (
+            sci_parameter_util.fragment.
+            elems_from_dict(idict, sci_parameter_util.fragment.TemplateElem))
         self._compute_order()
         self._collect_inputs()
 

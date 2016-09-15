@@ -47,15 +47,18 @@ class PFileParser:
 
     @staticmethod
     def parser_by_name(name, fobj):
-        if name not in PFileParser._file_types:
+        try:
+            cst = PFileParser._file_types[name]
+        except KeyError:
             raise ParserNotFound("No parser for {}".format(name))
-        return PFileParser._file_types[name](fobj)
+        return cst(fobj)
 
     @staticmethod
     def parser_by_extn(extn, fobj):
-        if extn not in PFileParser._file_extns:
+        try:
+            name = PFileParser._file_extns[extn]
+        except KeyError:
             raise ParserNotFound("Extension {} not known".format(extn))
-        name = PFileParser._file_extns[extn]
         if not name:
             raise ParserNotFound("Extension {} ambiguous".format(extn))
         return PFileParser.parser_by_name(name, fobj)

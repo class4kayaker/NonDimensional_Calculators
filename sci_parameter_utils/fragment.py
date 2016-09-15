@@ -10,16 +10,29 @@ def _register_by_type(etype, store_dict):
 
 
 def _return_elem_by_type(store_dict, tstr, name, args):
-    if tstr in store_dict:
+    try:
         cst = store_dict[tstr]
-        try:
-            return cst(name, **args)
-        except TypeError as e:
-            raise InvalidElementError(
-                "Error constructing element {} of type {}: {}"
-                .format(name, tstr, e))
-    else:
+    except KeyError:
         raise InvalidElementError('Unknown type {}'.format(tstr))
+    try:
+        return cst(name, **args)
+    except TypeError as e:
+        raise InvalidElementError(
+            "Error constructing element {} of type {}: {}"
+            .format(name, tstr, e))
+
+
+def elems_from_dict(idict, baseElem):
+    elems = {}
+    for k in idict:
+        e = idict[k]
+        try:
+            tstr = e['type']
+            del e['type']
+        except KeyError:
+            raise InvalidElementError("No type for element {}".format(k))
+        elems[k] = baseElem.elem_by_type(tstr, k, e)
+    return elems
 
 
 class InvalidElementError(RuntimeError):
@@ -165,3 +178,43 @@ class FNFmtElem(FmtElem):
     def evaluate(self, values):
         fn_transl = string.maketrans('./', '__')
         return self.expr.format(**values).translate(fn_transl)
+
+
+class SearchElem:
+    _elem_types = {}
+
+    @staticmethod
+    def register_type(tstr):
+        _register_by_type(tstr, SearchElem._elem_types)
+
+    @staticmethod
+    def elem_by_type(tstr, name, args):
+        _return_elem_by_type(SearchElem._elem_types,
+                             tstr,
+                             name,
+                             args)
+
+    def get_name(self):
+        raise NotImplementedError()
+
+    def get_key(self):
+        raise NotImplementedError()
+
+    def get_value(self, value):
+        raise NotImplementedError()
+
+
+@SearchElem.register_type('loc')
+def LocElem(SearchElem):
+    def __init__(self, name, key):
+        self.name = name
+        self.key = key
+
+    def get_name(self):
+        return self.name
+
+    def get_key(self):
+        return self.key
+
+    def get_value(self, value):
+        return value

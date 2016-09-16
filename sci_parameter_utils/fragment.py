@@ -48,14 +48,14 @@ class TemplateElem:
 
     @staticmethod
     def register_type(tstr):
-        _register_by_type(tstr, TemplateElem._elem_types)
+        return _register_by_type(tstr, TemplateElem._elem_types)
 
     @staticmethod
     def elem_by_type(tstr, name, args):
-        _return_elem_by_type(TemplateElem._elem_types,
-                             tstr,
-                             name,
-                             args)
+        return _return_elem_by_type(TemplateElem._elem_types,
+                                    tstr,
+                                    name,
+                                    args)
 
     def get_name(self):
         """Method returning name of template element"""
@@ -185,14 +185,14 @@ class SearchElem:
 
     @staticmethod
     def register_type(tstr):
-        _register_by_type(tstr, SearchElem._elem_types)
+        return _register_by_type(tstr, SearchElem._elem_types)
 
     @staticmethod
     def elem_by_type(tstr, name, args):
-        _return_elem_by_type(SearchElem._elem_types,
-                             tstr,
-                             name,
-                             args)
+        return _return_elem_by_type(SearchElem._elem_types,
+                                    tstr,
+                                    name,
+                                    args)
 
     def get_name(self):
         raise NotImplementedError()

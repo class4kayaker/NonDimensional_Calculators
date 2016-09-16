@@ -1,11 +1,11 @@
-import sci_parameter_util.fragment
+import sci_parameter_utils.fragment
 
 
 class TemplateElemSet:
     def __init__(self, idict):
         self.elements = (
-            sci_parameter_util.fragment.
-            elems_from_dict(idict, sci_parameter_util.fragment.TemplateElem))
+            sci_parameter_utils.fragment.
+            elems_from_dict(idict, sci_parameter_utils.fragment.TemplateElem))
         self._compute_order()
         self._collect_inputs()
 
@@ -13,7 +13,7 @@ class TemplateElemSet:
         self.inputs = set()
         for k in self.elements:
             e = self.elements[k]
-            if isinstance(e, sci_parameter_util.fragment.InputElem):
+            if isinstance(e, sci_parameter_utils.fragment.InputElem):
                 self.inputs.add(k)
 
     def get_inputs(self):
@@ -23,7 +23,7 @@ class TemplateElemSet:
         if k in self.inputs:
             return self.elements[k].validate(v)
         else:
-            raise sci_parameter_util.fragment.InvalidInputError(
+            raise sci_parameter_utils.fragment.InvalidInputError(
                 "Invalid input name {}".format(k))
 
     def compute_strs(self, valdict):

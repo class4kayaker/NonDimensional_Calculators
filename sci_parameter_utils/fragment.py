@@ -169,7 +169,7 @@ class FmtElem(TemplateElem):
 @TemplateElem.register_type('fname')
 class FNFmtElem(FmtElem):
     def evaluate(self, values):
-        fn_transl = string.maketrans('./', '__')
+        fn_transl = string.maketrans('./ ', '___')
         return self.expr.format(**values).translate(fn_transl)
 
 

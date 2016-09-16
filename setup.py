@@ -12,12 +12,20 @@ dependencies = [
     'pyyaml',
     'sympy'
 ]
+test_deps = [
+    'pytest'
+]
+setup_deps = [
+    'pytest-runner'
+]
 
 setup(
     name=package,
     version=version,
-    packages=find_packages(exclude=['data']),
+    packages=find_packages(exclude=['tests']),
+    setup_requires=setup_deps,
     install_requires=dependencies,
+    tests_require=test_deps,
     entry_points={
         'console_scripts': [
             'sci_parameter_utils = sci_parameter_utils.cli:cli_main'

@@ -15,16 +15,12 @@ dependencies = [
 test_deps = [
     'pytest'
 ]
-setup_deps = [
-    'pytest-runner'
-]
 
 setup(
     name=package,
     version=version,
     package_dir={'': 'src'},
     packages=find_packages('src', exclude=['tests']),
-    setup_requires=setup_deps,
     install_requires=dependencies,
     tests_require=test_deps,
     entry_points={

@@ -96,29 +96,22 @@ class InputElem(TemplateElem):
 
 @TemplateElem.register_type('int')
 class IntElem(InputElem):
-    def validate(self, istr):
-        try:
-            return int(istr)
-        except ValueError:
-            raise InvalidInputError("Bad value for {}".format(self.name))
+    @staticmethod
+    def validate(value):
+        return int(value)
 
 
 @TemplateElem.register_type('float')
 class FloatElem(InputElem):
-    def validate(self, istr):
-        try:
-            return float(istr)
-        except ValueError:
-            raise InvalidInputError("Bad value for {}".format(self.name))
+    @staticmethod
+    def validate(value):
+        return float(value)
 
 
 @TemplateElem.register_type('str')
 class StrElem(InputElem):
-    def validate(self, istr):
-        try:
-            return str(istr)
-        except ValueError:
-            raise InvalidInputError("Bad value for {}".format(self.name))
+    def validate(value):
+        return str(value)
 
 
 @TemplateElem.register_type('expr')

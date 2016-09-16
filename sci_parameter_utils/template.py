@@ -21,7 +21,11 @@ class TemplateElemSet:
 
     def validate(self, k, v):
         if k in self.inputs:
-            return self.elements[k].validate(v)
+            try:
+                return self.elements[k].validate(v)
+            except ValueError:
+                raise sci_parameter_utils.fragment.InvalidInputError(
+                    "Bad value for {}".format(k))
         else:
             raise sci_parameter_utils.fragment.InvalidInputError(
                 "Invalid input name {}".format(k))

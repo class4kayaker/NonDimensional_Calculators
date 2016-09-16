@@ -31,3 +31,23 @@ class TestInputElems:
         assert elem.name == name
         assert elem.fmt == fmt
         assert elem.get_dependencies() == set()
+
+
+@pytest.mark.parametrize("tstr,expr,deps", [
+    ('expr', 'a*b+c', set(['a', 'b', 'c'])),
+    ('fmt', '{a} {b} {c}', set(['a', 'b', 'c'])),
+    ('fname', '{a} {b} {c}', set(['a', 'b', 'c'])),
+])
+class TestExprElems:
+    def test_create(self, tstr, expr, deps):
+        name = 'test'
+        args = {
+            'expr': expr
+        }
+        elem = frag.TemplateElem.elem_by_type(tstr,
+                                              name,
+                                              args,
+                                              )
+
+        assert elem.name == name
+        assert elem.get_dependencies() == deps

@@ -22,7 +22,8 @@ setup_deps = [
 setup(
     name=package,
     version=version,
-    packages=find_packages(exclude=['tests']),
+    package_dir={'': 'src'},
+    packages=find_packages('src', exclude=['tests']),
     setup_requires=setup_deps,
     install_requires=dependencies,
     tests_require=test_deps,

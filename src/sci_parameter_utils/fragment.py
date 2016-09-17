@@ -1,5 +1,10 @@
 import sympy
+import sys
 import string
+if sys.version_info.major == 2:
+    tr_func = string.maketrans
+else:
+    tr_func = str.maketrans
 
 
 def _register_by_type(etype, store_dict):
@@ -163,14 +168,14 @@ class FmtElem(TemplateElem):
         return deps
 
     def evaluate(self, values):
-        return self.expr.format(values)
+        return self.expr.format(**values)
 
 
 @TemplateElem.register_type('fname')
 class FNFmtElem(FmtElem):
     def evaluate(self, values):
-        fn_transl = string.maketrans('./ ', '___')
-        return self.expr.format(**values).translate(fn_transl)
+        fn_transl = tr_func('./ ', '___')
+        return FmtElem.evaluate(self, values).translate(fn_transl)
 
 
 class SearchElem:

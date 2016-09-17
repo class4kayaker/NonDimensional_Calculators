@@ -51,3 +51,24 @@ class TestExprElems:
 
         assert elem.name == name
         assert elem.get_dependencies() == deps
+
+
+@pytest.mark.parametrize("tstr,expr,idict,interm,fmt", [
+    ('expr', 'a', {'a': 5}, 5, '5'),
+    ('expr', 'a*b', {'a': 5, 'b': 2}, 10, '10'),
+    ('fmt', '{a:}', {'a': 5}, '5', '5'),
+    ('fmt', '{a:} {b:}', {'a': 5, 'b': 2}, '5 2', '5 2'),
+    ('fname', '{a:}', {'a': 5}, '5', '5'),
+    ('fname', '{a:}./ {b:}', {'a': 5, 'b': 2}, '5___2', '5___2'),
+])
+def test_expressions(tstr, expr, idict, interm, fmt):
+    name = 'test'
+    args = {'expr': expr}
+    elem = frag.TemplateElem.elem_by_type(tstr,
+                                          name,
+                                          args,
+                                          )
+
+    out = elem.evaluate(idict)
+    assert out == interm
+    assert fmt == elem.do_format(out)

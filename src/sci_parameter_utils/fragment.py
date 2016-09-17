@@ -191,10 +191,7 @@ class ExprElem(TemplateElem):
     def evaluate(self, values):
         """Method returning value of the element suitable for use in final
         file"""
-        a = []
-        for k in self.get_dependencies():
-            a.append(str(values[k]))
-        return ':'.join(a)
+        pass
 
 
 @TemplateElem.register_type('expr')
@@ -204,8 +201,8 @@ class NExprElem(ExprElem):
         self.expr = sympy.S(expr)
         self.fmt = fmt
         if self.name in self.get_dependencies():
-            raise InvalidElementError(
-                "Element {} cannot be dependent on itself".format(self.name))
+            raise DependencyError(
+                "Element '{}' cannot be dependent on itself".format(self.name))
 
     def get_name(self):
         return self.name
@@ -240,8 +237,8 @@ class FmtElem(ExprElem):
         self.name = name
         self.expr = expr
         if self.name in self.get_dependencies():
-            raise InvalidElementError(
-                "Element {} cannot be dependent on itself".format(self.name))
+            raise DependencyError(
+                "Element '{}' cannot be dependent on itself".format(self.name))
 
     def get_name(self):
         return self.name
@@ -255,9 +252,10 @@ class FmtElem(ExprElem):
 
     def evaluate(self, values):
         deps = self.get_dependencies()
-        if not values.keys() <= deps:
+        if not deps.issubset(values.keys()):
             raise DependencyError(
-                "Missing dependencies {}".format(deps-values.keys()))
+                "Missing dependencies {}".format(
+                    deps.difference(values.keys())))
         return self.expr.format(**values)
 
 

@@ -1,5 +1,6 @@
 import pytest
 import sci_parameter_utils.fragment as frag
+import sympy
 
 
 @pytest.mark.parametrize("tstr,name,args,error", [
@@ -72,7 +73,7 @@ class TestExprElems:
                                               args,
                                               )
 
-        assert elem.name == name
+        assert elem.get_name() == name
         assert elem.get_dependencies() == deps
 
 
@@ -92,22 +93,24 @@ class TestSearchElems:
         assert elem.get_key() == key
 
 
-@pytest.mark.parametrize("tstr,value,result", [
-    ('int', 1, 1),
-    ('int', '1', 1),
-    ('float', 3.4, 3.4),
-    ('float', 3, 3.0),
-    ('float', '3.4', 3.4),
-    ('str', '3.4', '3.4'),
+@pytest.mark.parametrize("tstr,value,result,fmt", [
+    ('int', 1, 1, '1'),
+    ('int', '1', 1, '1'),
+    ('float', 3.4, 3.4, '3.4'),
+    ('float', 3, 3.0, '3.0'),
+    ('float', '3.4', 3.4, '3.4'),
+    ('str', '3.4', '3.4', '3.4'),
 ])
-def test_valid_values(tstr, value, result):
+def test_valid_values(tstr, value, result, fmt):
     name = 'test'
     elem = frag.TemplateElem.elem_by_type(tstr,
                                           name,
                                           {}
                                           )
 
-    assert elem.validate(value) == result
+    v = elem.validate(value)
+    assert v == result
+    assert elem.do_format(v) == fmt
 
 
 @pytest.mark.parametrize("tstr,value", [
@@ -144,6 +147,45 @@ def test_expressions(tstr, expr, idict, interm, fmt):
     out = elem.evaluate(idict)
     assert out == interm
     assert fmt == elem.do_format(out)
+
+
+@pytest.mark.parametrize("tstr,name,expr,etype,error", [
+    ('expr', 'a', 'a', frag.DependencyError,
+     "Element 'a' cannot be dependent on itself"),
+    ('expr', 'test', 'a***b', sympy.SympifyError, ""),
+    ('fmt', 'a', '{a}', frag.DependencyError,
+     "Element 'a' cannot be dependent on itself"),
+])
+def test_invalid_expressions(tstr, name, expr, etype, error):
+    args = {'expr': expr}
+    with pytest.raises(etype) as excinfo:
+        frag.TemplateElem.elem_by_type(tstr,
+                                       name,
+                                       args,
+                                       )
+    if error:
+        assert error == str(excinfo.value)
+
+
+@pytest.mark.parametrize("tstr,expr,idict,missing", [
+    ('expr', 'a', {}, set(['a'])),
+    ('expr', 'b', {'c': 1}, set(['b'])),
+    ('fmt', '{a}', {}, set(['a'])),
+    ('fmt', '{b}', {'c': 1}, set(['b'])),
+    ('fname', '{a}', {}, set(['a'])),
+    ('fname', '{b}', {'c': 1}, set(['b'])),
+])
+def test_missing_dependent_expressions(tstr, expr, idict, missing):
+    name = 'test'
+    args = {'expr': expr}
+    elem = frag.TemplateElem.elem_by_type(tstr,
+                                          name,
+                                          args,
+                                          )
+    with pytest.raises(frag.DependencyError) as excinfo:
+        elem.evaluate(idict)
+
+    assert str(excinfo.value) == "Missing dependencies {}".format(missing)
 
 
 @pytest.mark.parametrize("tstr,name,key,args,value,output", [

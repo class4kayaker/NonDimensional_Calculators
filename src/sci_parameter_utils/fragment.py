@@ -1,14 +1,17 @@
 import sympy
 import sys
 import string
+import abc
+from six import with_metaclass
 if sys.version_info.major == 2:
     tr_func = string.maketrans
 else:
     tr_func = str.maketrans
 
 
-def _register_by_type(etype, store_dict):
+def _register_by_type(etype, base_class, store_dict):
     def internal_dec(cls):
+        assert issubclass(cls, base_class)
         store_dict[etype] = cls
         return cls
     return internal_dec
@@ -110,12 +113,14 @@ class TemplateElemSet:
         return
 
 
-class TemplateElem:
+class TemplateElem(with_metaclass(abc.ABCMeta)):
     _elem_types = {}
 
     @staticmethod
     def register_type(tstr):
-        return _register_by_type(tstr, TemplateElem._elem_types)
+        return _register_by_type(tstr,
+                                 TemplateElem,
+                                 TemplateElem._elem_types)
 
     @staticmethod
     def elem_by_type(tstr, name, args):
@@ -124,19 +129,16 @@ class TemplateElem:
                                     name,
                                     args)
 
+    @abc.abstractmethod
     def get_name(self):
         """Method returning name of template element"""
-        raise NotImplementedError()
+        return self.name
 
+    @abc.abstractmethod
     def get_dependencies(self):
         """Method returning dependencies of template element, dependency on
         self implies expectation of external definition"""
-        raise NotImplementedError()
-
-    def evaluate(self, values):
-        """Method returning value of the element suitable for use in final
-        file"""
-        raise NotImplementedError()
+        return set()
 
     def do_format(self, value):
         """Method returning formatted string when given result of evaluate"""
@@ -149,13 +151,16 @@ class InputElem(TemplateElem):
         self.fmt = fmt
 
     def get_name(self):
-        return self.name
+        return TemplateElem.get_name(self)
 
     def get_dependencies(self):
-        return set()
+        return TemplateElem.get_dependencies(self)
 
+    @abc.abstractmethod
     def validate(self, istr):
-        raise NotImplementedError()
+        """Do necessary conversion of input string value and raise exceptions
+        for invalid values"""
+        return str(istr)
 
     def do_format(self, value):
         return self.fmt.format(value)
@@ -177,13 +182,23 @@ class FloatElem(InputElem):
 
 @TemplateElem.register_type('str')
 class StrElem(InputElem):
-    @staticmethod
-    def validate(value):
-        return str(value)
+    def validate(self, value):
+        return InputElem.validate(self, value)
+
+
+class ExprElem(TemplateElem):
+    @abc.abstractmethod
+    def evaluate(self, values):
+        """Method returning value of the element suitable for use in final
+        file"""
+        a = []
+        for k in self.get_dependencies():
+            a.append(str(values[k]))
+        return ':'.join(a)
 
 
 @TemplateElem.register_type('expr')
-class ExprElem(TemplateElem):
+class NExprElem(ExprElem):
     def __init__(self, name, expr, fmt='{}'):
         self.name = name
         self.expr = sympy.S(expr)
@@ -220,7 +235,7 @@ class ExprElem(TemplateElem):
 
 
 @TemplateElem.register_type('fmt')
-class FmtElem(TemplateElem):
+class FmtElem(ExprElem):
     def __init__(self, name, expr):
         self.name = name
         self.expr = expr
@@ -253,12 +268,12 @@ class FNFmtElem(FmtElem):
         return FmtElem.evaluate(self, values).translate(fn_transl)
 
 
-class SearchElem:
+class SearchElem(with_metaclass(abc.ABCMeta)):
     _elem_types = {}
 
     @staticmethod
     def register_type(tstr):
-        return _register_by_type(tstr, SearchElem._elem_types)
+        return _register_by_type(tstr, SearchElem, SearchElem._elem_types)
 
     @staticmethod
     def elem_by_type(tstr, name, args):
@@ -279,9 +294,7 @@ class SearchElem:
 
 @SearchElem.register_type('loc')
 class LocElem(SearchElem):
-    def __init__(self, name, key=None):
-        if key is None:
-            raise TypeError()
+    def __init__(self, name, key):
         self.name = name
         self.key = key
 

@@ -15,6 +15,7 @@ dependencies = [
     'click',
     'pyyaml',
     'sympy',
+    'six',
 ]
 setup_deps = [
 ] + pytest_runner

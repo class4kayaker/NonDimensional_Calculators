@@ -7,4 +7,5 @@
 click==6.6
 mpmath==0.19              # via sympy
 pyyaml==3.12
+six==1.10.0
 sympy==1.0

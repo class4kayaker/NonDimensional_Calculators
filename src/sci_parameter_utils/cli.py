@@ -2,7 +2,7 @@ import click
 import json
 import sci_parameter_utils.nondim
 import sci_parameter_utils.searcher
-import sci_parameter_utils.template
+import sci_parameter_utils.fragment
 import sci_parameter_utils.templater
 import yaml
 
@@ -43,8 +43,9 @@ def cli_main():
 def template(params, ifile, out, interact, template):
     """Generate parameter files from TEMPLATE"""
     try:
-        eset = sci_parameter_utils.template.TemplateElemSet(
-            get_dict_from_file(params))
+        eset = sci_parameter_utils.fragment.TemplateElemSet(
+            sci_parameter_utils.fragment.elems_from_dict(
+                get_dict_from_file(params)))
     except RuntimeError as e:
         click.echo("Error setting up template: {}".format(e))
         raise click.Abort()

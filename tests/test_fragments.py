@@ -2,27 +2,32 @@ import pytest
 import sci_parameter_utils.fragment as frag
 
 
-@pytest.mark.parametrize("tstr", [
-    'int',
-    'float',
-    'str'
+@pytest.mark.parametrize("tstr,name", [
+    ('int', 'test'),
+    ('int', 'test2'),
+    ('float', 'test'),
+    ('float', 'test2'),
+    ('str', 'test'),
+    ('str', 'test2')
 ])
 class TestInputElems:
-    def test_create(self, tstr):
-        name = 'test'
-        fmt = "{}"
+    def test_create(self, tstr, name):
+        def_fmt = "{}"
         elem = frag.TemplateElem.elem_by_type(tstr,
                                               name,
                                               {}
                                               )
 
         assert elem.name == name
-        assert elem.fmt == fmt
+        assert elem.fmt == def_fmt
         assert elem.get_dependencies() == set()
 
-    def test_create_w_fmt(self, tstr):
+    @pytest.mark.parametrize("fmt", [
+        '{:}',
+        '{:g}',
+    ])
+    def test_create_w_fmt(self, tstr, name, fmt):
         name = 'test'
-        fmt = "{:g}"
         elem = frag.TemplateElem.elem_by_type(tstr,
                                               name,
                                               {'fmt': fmt}
@@ -33,14 +38,16 @@ class TestInputElems:
         assert elem.get_dependencies() == set()
 
 
-@pytest.mark.parametrize("tstr,expr,deps", [
-    ('expr', 'a*b+c', set(['a', 'b', 'c'])),
-    ('fmt', '{a} {b} {c}', set(['a', 'b', 'c'])),
-    ('fname', '{a} {b} {c}', set(['a', 'b', 'c'])),
+@pytest.mark.parametrize("tstr,name,expr,deps", [
+    ('expr', 'test', 'a*b+c', set(['a', 'b', 'c'])),
+    ('expr', 'test2', 'd+b+c', set(['d', 'b', 'c'])),
+    ('fmt', 'test', '{a} {b} {c}', set(['a', 'b', 'c'])),
+    ('fmt', 'test2', '{c} {b} {d}', set(['c', 'b', 'd'])),
+    ('fname', 'test', '{a} {b} {c}', set(['a', 'b', 'c'])),
+    ('fname', 'test2', '{f} {b} {w}', set(['f', 'b', 'w'])),
 ])
 class TestExprElems:
-    def test_create(self, tstr, expr, deps):
-        name = 'test'
+    def test_create(self, tstr, name, expr, deps):
         args = {
             'expr': expr
         }
@@ -51,6 +58,22 @@ class TestExprElems:
 
         assert elem.name == name
         assert elem.get_dependencies() == deps
+
+
+@pytest.mark.parametrize("tstr,name,args,key", [
+    ('loc', 'test', {}, 'CFL'),
+    ('loc', 'test2', {}, 'CFL:Test:key'),
+])
+class TestSearchElems:
+    def test_create(self, tstr, name, args, key):
+        assert 'key' not in args
+        args['key'] = key
+        elem = frag.SearchElem.elem_by_type(tstr,
+                                            name,
+                                            args,)
+
+        assert elem.name == name
+        assert elem.get_key() == key
 
 
 @pytest.mark.parametrize("tstr,expr,idict,interm,fmt", [
@@ -72,3 +95,17 @@ def test_expressions(tstr, expr, idict, interm, fmt):
     out = elem.evaluate(idict)
     assert out == interm
     assert fmt == elem.do_format(out)
+
+
+@pytest.mark.parametrize("tstr,args,value,output", [
+    ('loc', {}, 'test', 'test'),
+    ('loc', {}, 'test2', 'test2'),
+])
+def test_searchers(tstr, args, value, output):
+    name = 'test'
+    args['key'] = 'test'
+    elem = frag.SearchElem.elem_by_type(tstr,
+                                        name,
+                                        args,)
+
+    assert elem.get_value(value) == output

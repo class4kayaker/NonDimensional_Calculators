@@ -23,7 +23,7 @@ def _return_elem_by_type(store_dict, tstr, name, args):
         return cst(name, **args)
     except TypeError as e:
         raise InvalidElementError(
-            "Error constructing element {} of type {}: {}"
+            "Error constructing element '{}' of type '{}': {}"
             .format(name, tstr, e))
 
 
@@ -203,8 +203,10 @@ class SearchElem:
 
 
 @SearchElem.register_type('loc')
-def LocElem(SearchElem):
-    def __init__(self, name, key):
+class LocElem(SearchElem):
+    def __init__(self, name, key=None):
+        if key is None:
+            raise TypeError()
         self.name = name
         self.key = key
 

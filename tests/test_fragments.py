@@ -76,6 +76,39 @@ class TestSearchElems:
         assert elem.get_key() == key
 
 
+@pytest.mark.parametrize("tstr,value,result", [
+    ('int', 1, 1),
+    ('int', '1', 1),
+    ('float', 3.4, 3.4),
+    ('float', 3, 3.0),
+    ('float', '3.4', 3.4),
+    ('str', '3.4', '3.4'),
+])
+def test_valid_values(tstr, value, result):
+    name = 'test'
+    elem = frag.TemplateElem.elem_by_type(tstr,
+                                          name,
+                                          {}
+                                          )
+
+    assert elem.validate(value) == result
+
+
+@pytest.mark.parametrize("tstr,value", [
+    ('int', 'a'),
+    ('int', '3.4'),
+    ('float', 'a'),
+])
+def test_invalid_values(tstr, value):
+    name = 'test'
+    elem = frag.TemplateElem.elem_by_type(tstr,
+                                          name,
+                                          {}
+                                          )
+    with pytest.raises(ValueError):
+        elem.validate(value)
+
+
 @pytest.mark.parametrize("tstr,expr,idict,interm,fmt", [
     ('expr', 'a', {'a': 5}, 5, '5'),
     ('expr', 'a*b', {'a': 5, 'b': 2}, 10, '10'),

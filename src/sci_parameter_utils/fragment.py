@@ -177,6 +177,7 @@ class FloatElem(InputElem):
 
 @TemplateElem.register_type('str')
 class StrElem(InputElem):
+    @staticmethod
     def validate(value):
         return str(value)
 

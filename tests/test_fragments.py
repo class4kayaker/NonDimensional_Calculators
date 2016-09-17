@@ -14,6 +14,7 @@ def test_invalid_types(tstr, name, args, error):
                                        name,
                                        args
                                        )
+
     assert error == str(excinfo.value)
 
 

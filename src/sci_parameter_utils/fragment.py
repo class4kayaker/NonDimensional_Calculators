@@ -18,7 +18,7 @@ def _return_elem_by_type(store_dict, tstr, name, args):
     try:
         cst = store_dict[tstr]
     except KeyError:
-        raise InvalidElementError('Unknown type {}'.format(tstr))
+        raise InvalidElementError("Unknown type '{}'".format(tstr))
     try:
         return cst(name, **args)
     except TypeError as e:

@@ -2,6 +2,21 @@ import pytest
 import sci_parameter_utils.fragment as frag
 
 
+@pytest.mark.parametrize("tstr,name,args,error", [
+    ('invalid', 'test', {}, "Unknown type 'invalid'"),
+    ('int', 'test', {'bad_arg': 1}, "Error constructing element "
+     "'test' of type 'int': __init__() got an unexpected keyword "
+     "argument 'bad_arg'"),
+])
+def test_invalid_types(tstr, name, args, error):
+    with pytest.raises(frag.InvalidElementError) as excinfo:
+        frag.TemplateElem.elem_by_type(tstr,
+                                       name,
+                                       args
+                                       )
+    assert error == str(excinfo.value)
+
+
 @pytest.mark.parametrize("tstr,name", [
     ('int', 'test'),
     ('int', 'test2'),

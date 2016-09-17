@@ -203,8 +203,16 @@ class ExprElem(TemplateElem):
 
     def evaluate(self, values):
         var_vals = {}
+        dep_missing = set()
         for k in self.expr.atoms(sympy.Symbol):
-            var_vals[k] = values[str(k)]
+            k_str = str(k)
+            try:
+                var_vals[k] = values[k_str]
+            except KeyError:
+                dep_missing.add(k_str)
+        if dep_missing:
+            raise DependencyError(
+                "Missing dependencies {}".format(dep_missing))
         return self.expr.subs(var_vals)
 
     def do_format(self, value):
@@ -231,6 +239,10 @@ class FmtElem(TemplateElem):
         return deps
 
     def evaluate(self, values):
+        deps = self.get_dependencies()
+        if not values.keys() <= deps:
+            raise DependencyError(
+                "Missing dependencies {}".format(deps-values.keys()))
         return self.expr.format(**values)
 
 

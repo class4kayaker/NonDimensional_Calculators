@@ -51,6 +51,7 @@ class TestInputElems:
                                               )
 
         assert elem.name == name
+        assert elem.get_name() == name
         assert elem.fmt == fmt
         assert elem.get_dependencies() == set()
 

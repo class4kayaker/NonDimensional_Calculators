@@ -282,14 +282,17 @@ class SearchElem(with_metaclass(abc.ABCMeta)):
                                     name,
                                     args)
 
+    @abc.abstractmethod
     def get_name(self):
-        raise NotImplementedError()
+        return self.name
 
+    @abc.abstractmethod
     def get_key(self):
-        raise NotImplementedError()
+        return self.key
 
+    @abc.abstractmethod
     def get_value(self, value):
-        raise NotImplementedError()
+        return value
 
 
 @SearchElem.register_type('loc')
@@ -299,10 +302,10 @@ class LocElem(SearchElem):
         self.key = key
 
     def get_name(self):
-        return self.name
+        return SearchElem.get_name(self)
 
     def get_key(self):
-        return self.key
+        return SearchElem.get_key(self)
 
     def get_value(self, value):
-        return value
+        return SearchElem.get_value(self, value)

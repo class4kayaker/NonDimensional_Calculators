@@ -146,15 +146,16 @@ def test_expressions(tstr, expr, idict, interm, fmt):
     assert fmt == elem.do_format(out)
 
 
-@pytest.mark.parametrize("tstr,args,value,output", [
-    ('loc', {}, 'test', 'test'),
-    ('loc', {}, 'test2', 'test2'),
+@pytest.mark.parametrize("tstr,name,key,args,value,output", [
+    ('loc', 'test', 'key', {}, 'test', 'test'),
+    ('loc', 'test', 'key', {}, 'test2', 'test2'),
 ])
-def test_searchers(tstr, args, value, output):
-    name = 'test'
-    args['key'] = 'test'
+def test_searchers(tstr, name, key, args, value, output):
+    args['key'] = key
     elem = frag.SearchElem.elem_by_type(tstr,
                                         name,
                                         args,)
 
+    assert elem.get_name() == name
+    assert elem.get_key() == key
     assert elem.get_value(value) == output

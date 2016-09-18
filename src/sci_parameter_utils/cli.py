@@ -1,10 +1,9 @@
 import click
 import json
 import sci_parameter_utils.nondim
-import sci_parameter_utils.searcher
 import sci_parameter_utils.fragment
 import sci_parameter_utils.parsers
-import sci_parameter_utils.templater
+import sci_parameter_utils.general
 import yaml
 
 
@@ -70,7 +69,7 @@ def template(params, ifile, out, interact, template):
         raise click.Abort()
 
     if not out:
-        out = sci_parameter_utils.templater.get_fn_suggest(template, parser)
+        out = sci_parameter_utils.general.get_fn_suggest(template, parser)
     if not out:
         out = 'output.'+extn
 
@@ -85,8 +84,9 @@ def template(params, ifile, out, interact, template):
                 while True:
                     try:
                         ivals[k] = eset.validate(k, click.prompt(p))
+                        break
                     except ValueError as e:
-                        click.echo('Bad value for {}: {}'.format(k, e))
+                        click.echo('Try again: {}'.format(e))
             else:
                 click.echo("No value supplied for {}".format(k))
                 raise click.Abort()
@@ -101,7 +101,7 @@ def template(params, ifile, out, interact, template):
 
         try:
             click.echo(fn)
-            (sci_parameter_utils.templater
+            (sci_parameter_utils.general
              .do_template(template,
                           click.open_file(fn, 'w'),
                           parser,
@@ -169,7 +169,7 @@ def print_vals(prmfiles, deffile, olist):
         click.echo("Input {}:".format(f.name))
 
         try:
-            ivals = sci_parameter_utils.searcher.do_search(sset, f, parser)
+            ivals = sci_parameter_utils.general.do_search(sset, f, parser)
         except Exception as e:
             click.echo("Error searching file: {}".format(e))
             raise click.Abort()

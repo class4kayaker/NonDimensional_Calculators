@@ -45,7 +45,7 @@ class InvalidElementError(RuntimeError):
     pass
 
 
-class InvalidInputError(RuntimeError):
+class InvalidInputError(ValueError):
     pass
 
 

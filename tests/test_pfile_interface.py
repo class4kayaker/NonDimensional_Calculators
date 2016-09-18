@@ -9,7 +9,10 @@ import sci_parameter_utils.parameter_file as prm_file
 def test_create_comment(comment):
     l = prm_file.CommentLine(comment)
 
+    assert l.ltype == "Comment"
     assert l.comment == comment
+    assert str(l) == "<{}: {}>".format(l.ltype, l.comment)
+    assert repr(l) == "<{}: {}>".format(l.__class__, l.comment)
 
 
 @pytest.mark.parametrize("line", [
@@ -23,8 +26,11 @@ def test_create_comment(comment):
 def test_create_control(line, level):
     l = prm_file.ControlLine(line, level)
 
+    assert l.ltype == "Control"
     assert l.line == line
     assert l.level == level
+    assert str(l) == "<{}: ({}) {}>".format(l.ltype, l.level, l.line)
+    assert repr(l) == "<{}: ({}) {}>".format(l.__class__, l.level, l.line)
 
 
 @pytest.mark.parametrize("key", [
@@ -44,9 +50,14 @@ def test_create_control(line, level):
 def test_create_value(key, value, level):
     l = prm_file.ValueLine(key, value, level)
 
+    assert l.ltype == "KeyValue"
     assert l.key == key
     assert l.value == value
     assert l.level == level
+    assert str(l) == "<{}: ({}) {} = {}>".format(l.ltype, l.level,
+                                                 l.key, l.value)
+    assert repr(l) == "<{}: ({}) {} = {}>".format(l.__class__, l.level,
+                                                  l.key, l.value)
 
 
 class TPFileParser(prm_file.PFileParser):
@@ -84,8 +95,9 @@ def test_register_pfiles_parsers(tstrs, create_mock_parser, monkeypatch):
     monkeypatch.setattr(prm_file.PFileParser, '_file_extns', test_extns)
 
     for t, h in tstrs:
-        prm_file.PFileParser.register_type(t, h)(
-            create_mock_parser(t, h))
+        c = create_mock_parser(t, h)
+        co = prm_file.PFileParser.register_type(t, h)(c)
+        assert c == co
 
     for t, h in tstrs:
         obj = None

@@ -3,25 +3,52 @@ from six import with_metaclass
 
 
 class PFileLine:
+    ltype = None
     pass  # pragma nocoverage
 
 
 class CommentLine(PFileLine):
+    ltype = "Comment"
+
     def __init__(self, comment):
         self.comment = comment
 
+    def __repr__(self):
+        return "<{}: {}>".format(self.__class__, self.comment)
+
+    def __str__(self):
+        return "<{}: {}>".format(self.ltype, self.comment)
+
 
 class ControlLine(PFileLine):
+    ltype = "Control"
+
     def __init__(self, line, level):
         self.line = line
         self.level = level
 
+    def __repr__(self):
+        return "<{}: ({}) {}>".format(self.__class__, self.level, self.line)
+
+    def __str__(self):
+        return "<{}: ({}) {}>".format(self.ltype, self.level, self.line)
+
 
 class ValueLine(PFileLine):
+    ltype = "KeyValue"
+
     def __init__(self, key, value, level):
         self.key = key
         self.value = value
         self.level = level
+
+    def __repr__(self):
+        return "<{}: ({}) {} = {}>".format(self.__class__, self.level,
+                                           self.key, self.value)
+
+    def __str__(self):
+        return "<{}: ({}) {} = {}>".format(self.ltype, self.level,
+                                           self.key, self.value)
 
 
 class ParserNotFound(RuntimeError):
@@ -47,6 +74,7 @@ class PFileParser(with_metaclass(abc.ABCMeta)):
                 PFileParser._file_extns[extn] = None
             else:
                 PFileParser._file_extns[extn] = name
+            return cls
         return internal_dec
 
     @staticmethod

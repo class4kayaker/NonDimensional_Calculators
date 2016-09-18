@@ -60,24 +60,10 @@ def test_create_value(key, value, level):
                                                   l.key, l.value)
 
 
-class TPFileParser(prm_file.PFileParser):
-    def __init__(self, fobj):
-        pass  # pragma nocoverage
-
-    def reset(self):
-        pass  # pragma nocoverage
-
-    def lines(self):
-        pass  # pragma nocoverage
-
-    def typeset_line(line):
-        pass  # pragma nocoverage
-
-
 @pytest.fixture
 def create_mock_parser():
     def internal(name, extn):
-        class Mock(TPFileParser):
+        class Mock(prm_file.PFileParser):
             tdefn = name
             textn = extn
         return Mock
@@ -100,11 +86,10 @@ def test_register_pfiles_parsers(tstrs, create_mock_parser, monkeypatch):
         assert c == co
 
     for t, h in tstrs:
-        obj = None
-        e = prm_file.PFileParser.parser_by_name(t, obj)
+        e = prm_file.PFileParser.parser_by_name(t)
         assert e.tdefn == t
         assert e.tdefn == t
-        e = prm_file.PFileParser.parser_by_extn(h, obj)
+        e = prm_file.PFileParser.parser_by_extn(h)
         assert e.tdefn == t
         assert e.tdefn == t
 
@@ -135,8 +120,8 @@ def test_register_pfiles_parser_collision(tstrs,
     (prm_file.ParserNotFound, 'No parser for nonex', 'nonex',
      [('name{}'.format(i), 'extn{}'.format(i)) for i in range(0, 3)]),
 ])
-def test_fetch_name_pfiles_parsers(exc, error, fetch, tstrs,
-                                   create_mock_parser, monkeypatch):
+def test_fetch_name_pfiles_parsers_err(exc, error, fetch, tstrs,
+                                       create_mock_parser, monkeypatch):
     test_types = {}
     test_extns = {}
     monkeypatch.setattr(prm_file.PFileParser, '_file_types', test_types)
@@ -147,8 +132,7 @@ def test_fetch_name_pfiles_parsers(exc, error, fetch, tstrs,
             create_mock_parser(t, h))
 
     with pytest.raises(exc) as excinfo:
-        obj = None
-        prm_file.PFileParser.parser_by_name(fetch, obj)
+        prm_file.PFileParser.parser_by_name(fetch)
 
     if error:
         assert str(excinfo.value) == error
@@ -160,8 +144,8 @@ def test_fetch_name_pfiles_parsers(exc, error, fetch, tstrs,
     (prm_file.ParserNotFound, 'Extension extn ambiguous', 'extn',
      [('name{}'.format(i), 'extn'.format(i)) for i in range(0, 2)]),
 ])
-def test_fetch_extn_pfiles_parsers(exc, error, fetch, tstrs,
-                                   create_mock_parser, monkeypatch):
+def test_fetch_extn_pfiles_parsers_err(exc, error, fetch, tstrs,
+                                       create_mock_parser, monkeypatch):
     test_types = {}
     test_extns = {}
     monkeypatch.setattr(prm_file.PFileParser, '_file_types', test_types)
@@ -172,8 +156,7 @@ def test_fetch_extn_pfiles_parsers(exc, error, fetch, tstrs,
             create_mock_parser(t, h))
 
     with pytest.raises(exc) as excinfo:
-        obj = None
-        prm_file.PFileParser.parser_by_extn(fetch, obj)
+        prm_file.PFileParser.parser_by_extn(fetch)
 
     if error:
         assert str(excinfo.value) == error

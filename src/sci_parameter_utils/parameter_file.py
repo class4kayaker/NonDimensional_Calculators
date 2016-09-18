@@ -78,35 +78,27 @@ class PFileParser(with_metaclass(abc.ABCMeta)):
         return internal_dec
 
     @staticmethod
-    def parser_by_name(name, fobj):
+    def parser_by_name(name):
         try:
             cst = PFileParser._file_types[name]
         except KeyError:
             raise ParserNotFound("No parser for {}".format(name))
-        return cst(fobj)
+        return cst
 
     @staticmethod
-    def parser_by_extn(extn, fobj):
+    def parser_by_extn(extn):
         try:
             name = PFileParser._file_extns[extn]
         except KeyError:
             raise ParserNotFound("Extension {} not known".format(extn))
         if not name:
             raise ParserNotFound("Extension {} ambiguous".format(extn))
-        return PFileParser.parser_by_name(name, fobj)
+        return PFileParser.parser_by_name(name)
 
-    @abc.abstractmethod
-    def __init__(self, fobj):
-        pass  # pragma nocoverage
+    @staticmethod
+    def lines(fobj):
+        raise NotImplementedError()  # pragma nocoverage
 
-    @abc.abstractmethod
-    def reset(self):
-        pass  # pragma nocoverage
-
-    @abc.abstractmethod
-    def lines(self):
-        pass  # pragma nocoverage
-
-    @abc.abstractmethod
+    @staticmethod
     def typeset_line(line):
-        pass  # pragma nocoverage
+        raise NotImplementedError()  # pragma nocoverage

@@ -5,16 +5,13 @@ from sci_parameter_utils.parameter_file import (
 
 @PFileParser.register_type("dealIIPRM", "prm")
 class PRMParser(PFileParser):
-    def __init__(self, fobj):
-        self.fobj = fobj
-
-    def reset(self):
-        self.fobj.seek(0, 0)
-
-    def lines(self):
+    @staticmethod
+    def lines(fobj):
         position = []
         parse_line = ""
-        for line in self.fobj:
+        linenum = 0
+        for line in fobj:
+            linenum += 1
             # Strip comments
             if '#' in line:
                 line, comment = line.split('#', 1)
@@ -22,48 +19,59 @@ class PRMParser(PFileParser):
                 if not line.strip():
                     continue
 
-            parse_line += line.strip()
+            line = line.strip()
 
-            if(parse_line[-1:] == '\\'):
+            if(line[-1:] == '\\'):
+                parse_line += line[:-1].strip()+' '
                 continue
+
+            parse_line += line
+            parse_line = parse_line.strip()
 
             if not parse_line:
                 yield PFileLine()
                 continue
 
-            if(parse_line == 'end'):
-                if(len(position) > 0):
-                    position.pop()
-                else:
-                    raise ValueError("Invalid prm file")
-                yield ControlLine(parse_line, len(position))
-                parse_line = ""
-                continue
-
-            if ' ' in parse_line:
+            try:
                 command, remainder = parse_line.split(' ', 1)
-            else:
-                raise ValueError("Bad line: "+parse_line)
+            except ValueError:
+                command, remainder = parse_line, None
 
             parse_line = ""
 
-            if(command == 'subsection'):
-                remainder = remainder.strip()
-                yield ControlLine(command+' '+remainder, len(position))
-                position.append(remainder)
-            elif(command == 'set'):
-                key, value = remainder.split('=', 1)
-                position.append(key.strip())
-                yield ValueLine(':'.join(position),
-                                value.strip(),
-                                len(position)-1)
-                position.pop()
-            else:
-                raise ValueError(
-                    "Bad command {} with arg {}".format(command,
-                                                        remainder))
+            try:
+                if(command == 'subsection'):
+                    remainder = remainder.strip()
+                    yield ControlLine(command+' '+remainder, len(position))
+                    position.append(remainder)
+                elif(command == 'end'):
+                    if(len(position) > 0):
+                        position.pop()
+                    else:
+                        raise ValueError()
+                    yield ControlLine(command, len(position))
+                elif(command == 'set'):
+                    key, value = remainder.split('=', 1)
+                    position.append(key.strip())
+                    yield ValueLine(':'.join(position),
+                                    value.strip(),
+                                    len(position)-1)
+                    position.pop()
+                else:
+                    raise ValueError()
+            except ValueError:
+                errstr = "Line {}: Bad command {}".format(linenum,
+                                                          command)
+                if remainder:
+                    errstr.append(" with arg {}".format(remainder))
+                raise ValueError(errstr)
 
-    def typeset_line(self, line):
+        if len(position) > 0:
+            raise ValueError("Did not exit subsection {}".format(
+                ':'.join(position)))
+
+    @staticmethod
+    def typeset_line(line):
         if line.ltype == "Comment":
             return '# '+line.comment
         elif line.ltype == "Control":

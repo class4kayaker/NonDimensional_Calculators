@@ -82,7 +82,11 @@ def template(params, ifile, out, interact, template):
                 ivals[k] = eset.validate(k, d[k])
             elif interact:
                 p = "{}".format(k)
-                ivals[k] = eset.validate(k, click.prompt(p))
+                while True:
+                    try:
+                        ivals[k] = eset.validate(k, click.prompt(p))
+                    except ValueError as e:
+                        click.echo('Bad value for {}: {}'.format(k, e.value))
             else:
                 click.echo("No value supplied for {}".format(k))
                 raise click.Abort()
@@ -91,6 +95,11 @@ def template(params, ifile, out, interact, template):
             eset.compute_strings(ivals)
 
             fn = out.format(**ivals)
+        except Exception as e:
+            click.echo("Error generating filename: {}".format(fn, e.value))
+            raise click.Abort()
+
+        try:
             click.echo(fn)
             (sci_parameter_utils.templater
              .do_template(template,
@@ -98,7 +107,7 @@ def template(params, ifile, out, interact, template):
                           parser,
                           ivals))
         except Exception as e:
-            click.echo("{}".format(e.value))
+            click.echo("Error templating file {}: {}".format(fn, e.value))
             raise click.Abort()
 
 

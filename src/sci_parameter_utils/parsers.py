@@ -7,6 +7,40 @@ from sci_parameter_utils.parameter_file import (
 class PRMParser(PFileParser):
     @staticmethod
     def lines(fobj):
+        def parse_command(cline, position):
+            if not parse_line:
+                return PFileLine()
+
+            try:
+                command, remainder = cline.split(' ', 1)
+            except ValueError:
+                command, remainder = cline, None
+
+            try:
+                if(command == 'subsection'):
+                    remainder = remainder.strip()
+                    position.append(remainder)
+                    return ControlLine(command+' '+remainder, len(position)-1)
+                elif(command == 'end'):
+                    if(len(position) > 0):
+                        position.pop()
+                    else:
+                        raise ValueError()
+                    return ControlLine(command, len(position))
+                elif(command == 'set'):
+                    key, value = remainder.split('=', 1)
+                    return ValueLine(':'.join(position+[key.strip()]),
+                                     value.strip(),
+                                     len(position))
+                else:
+                    raise ValueError()
+            except ValueError:
+                errstr = "Line {}: Bad command {}".format(linenum,
+                                                          command)
+                if remainder:
+                    errstr += " with arg {}".format(remainder)
+                raise ValueError(errstr)
+
         position = []
         parse_line = ""
         linenum = 0
@@ -28,43 +62,12 @@ class PRMParser(PFileParser):
             parse_line += line
             parse_line = parse_line.strip()
 
-            if not parse_line:
-                yield PFileLine()
-                continue
-
-            try:
-                command, remainder = parse_line.split(' ', 1)
-            except ValueError:
-                command, remainder = parse_line, None
+            yield parse_command(parse_line, position)
 
             parse_line = ""
 
-            try:
-                if(command == 'subsection'):
-                    remainder = remainder.strip()
-                    yield ControlLine(command+' '+remainder, len(position))
-                    position.append(remainder)
-                elif(command == 'end'):
-                    if(len(position) > 0):
-                        position.pop()
-                    else:
-                        raise ValueError()
-                    yield ControlLine(command, len(position))
-                elif(command == 'set'):
-                    key, value = remainder.split('=', 1)
-                    position.append(key.strip())
-                    yield ValueLine(':'.join(position),
-                                    value.strip(),
-                                    len(position)-1)
-                    position.pop()
-                else:
-                    raise ValueError()
-            except ValueError:
-                errstr = "Line {}: Bad command {}".format(linenum,
-                                                          command)
-                if remainder:
-                    errstr.append(" with arg {}".format(remainder))
-                raise ValueError(errstr)
+        if parse_line:
+            yield parse_command(parse_line, position)
 
         if len(position) > 0:
             raise ValueError("Did not exit subsection {}".format(

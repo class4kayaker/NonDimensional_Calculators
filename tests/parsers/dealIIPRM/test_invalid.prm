@@ -1,0 +1,12 @@
+# Line 12: Bad command end
+
+
+set Key = 2
+
+subsection Sub
+subsection Sub
+set Key = 1
+end
+set Key =4
+end
+end

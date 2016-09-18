@@ -1,0 +1,10 @@
+# Did not exit subsection Sub
+
+
+set Key = 2
+
+subsection Sub
+subsection Sub
+set Key = 1
+end
+set Key =4

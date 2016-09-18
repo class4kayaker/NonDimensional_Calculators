@@ -1,0 +1,12 @@
+# Line 10: Bad command setl with arg Key =4
+
+
+set Key = 2
+
+subsection Sub
+subsection Sub
+set Key = 1
+end
+setl Key =4
+end
+end

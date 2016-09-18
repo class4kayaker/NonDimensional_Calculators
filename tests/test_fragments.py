@@ -4,6 +4,77 @@ import sympy
 import copy
 
 
+class DElem(frag.TemplateElem):
+    def __init__(self, name, deps):
+        self.name = name
+        self.deps = deps
+
+    def get_name(self):
+        return frag.TemplateElem.get_name(self)
+
+    def get_dependencies(self):
+        return self.deps
+
+    def evaluate(self, values):
+        for k in self.deps:
+            assert values[k] == k
+        return self.name
+
+    def do_format(self, value):
+        return '{}: {}'.format(self.name, value)
+
+
+class IElem(DElem, frag.InputElem):
+    def __init__(self, name):
+        DElem.__init__(self, name, set())
+
+    def validate(self, value):
+        return (self.name, frag.InputElem.validate(self, value))
+
+
+class SElem(frag.SearchElem):
+    def __init__(self, name):
+        self.name = name
+
+    def get_name(self):
+        return frag.SearchElem.get_name(self)
+
+    def get_key(self):
+        return self.SearchElem.get_key(self)
+
+    def get_value(self, value):
+        return self.SearchElem.get_
+
+
+@pytest.mark.parametrize("tstrs", [
+    ['test'],
+    ['test', 'test1'],
+])
+@pytest.mark.parametrize("cls,mocker", [
+    (frag.TemplateElem, IElem),
+    (frag.TemplateElem, IElem),
+    (frag.SearchElem, SElem),
+    (frag.SearchElem, SElem),
+])
+def test_register_TemplateElem(tstrs, cls, mocker, monkeypatch):
+    def create_mock_class(name):
+        class Mock(mocker):
+            tdefn = name
+        return Mock
+
+    test_dict = {}
+    monkeypatch.setattr(cls, '_elem_types', test_dict)
+
+    for tstr in tstrs:
+        e = create_mock_class(tstr)
+        eout = cls.register_type(tstr)(e)
+        assert e == eout
+
+    for tstr in tstrs:
+        ecr = cls.elem_by_type(tstr, tstr, {})
+        assert ecr.tdefn == tstr
+
+
 @pytest.mark.parametrize("tstr,name,args,error", [
     ('invalid', 'test', {}, "Unknown type 'invalid'"),
     ('int', 'test', {'bad_arg': 1}, "Error constructing element "
@@ -20,13 +91,14 @@ def test_invalid_types(tstr, name, args, error):
     assert error == str(excinfo.value)
 
 
-@pytest.mark.parametrize("tstr,name", [
-    ('int', 'test'),
-    ('int', 'test2'),
-    ('float', 'test'),
-    ('float', 'test2'),
-    ('str', 'test'),
-    ('str', 'test2')
+@pytest.mark.parametrize("tstr", [
+    'int',
+    'float',
+    'str',
+])
+@pytest.mark.parametrize("name", [
+    'test1',
+    'test2'
 ])
 class TestInputElems:
     def test_create(self, tstr, name):
@@ -57,13 +129,17 @@ class TestInputElems:
         assert elem.get_dependencies() == set()
 
 
-@pytest.mark.parametrize("tstr,name,expr,deps", [
-    ('expr', 'test', 'a*b+c', set(['a', 'b', 'c'])),
-    ('expr', 'test2', 'd+b+c', set(['d', 'b', 'c'])),
-    ('fmt', 'test', '{a} {b} {c}', set(['a', 'b', 'c'])),
-    ('fmt', 'test2', '{c} {b} {d}', set(['c', 'b', 'd'])),
-    ('fname', 'test', '{a} {b} {c}', set(['a', 'b', 'c'])),
-    ('fname', 'test2', '{f} {b} {w}', set(['f', 'b', 'w'])),
+@pytest.mark.parametrize("name", [
+    'test1',
+    'test2',
+])
+@pytest.mark.parametrize("tstr,expr,deps", [
+    ('expr', 'a*b+c', set(['a', 'b', 'c'])),
+    ('expr', 'd+b+c', set(['d', 'b', 'c'])),
+    ('fmt', '{a} {b} {c}', set(['a', 'b', 'c'])),
+    ('fmt', '{c} {b} {d}', set(['c', 'b', 'd'])),
+    ('fname', '{a} {b} {c}', set(['a', 'b', 'c'])),
+    ('fname', '{f} {b} {w}', set(['f', 'b', 'w'])),
 ])
 class TestExprElems:
     def test_create(self, tstr, name, expr, deps):
@@ -79,9 +155,13 @@ class TestExprElems:
         assert elem.get_dependencies() == deps
 
 
-@pytest.mark.parametrize("tstr,name,args,key", [
-    ('loc', 'test', {}, 'CFL'),
-    ('loc', 'test2', {}, 'CFL:Test:key'),
+@pytest.mark.parametrize("name", [
+    'test1',
+    'test2',
+])
+@pytest.mark.parametrize("tstr,args,key", [
+    ('loc', {}, 'CFL'),
+    ('loc', {}, 'CFL:Test:key'),
 ])
 class TestSearchElems:
     def test_create(self, tstr, name, args, key):
@@ -90,6 +170,7 @@ class TestSearchElems:
         elem = frag.SearchElem.elem_by_type(tstr,
                                             name,
                                             args,)
+        del args['key']
 
         assert elem.name == name
         assert elem.get_key() == key
@@ -238,34 +319,6 @@ def test_no_type_create_from_dict(idict, error, monkeypatch):
         frag.elems_from_dict(copy.deepcopy(idict), frag.TemplateElem)
 
     assert error == str(excinfo.value)
-
-
-class DElem(frag.TemplateElem):
-    def __init__(self, name, deps):
-        self.name = name
-        self.deps = deps
-
-    def get_name(self):
-        return frag.TemplateElem.get_name(self)
-
-    def get_dependencies(self):
-        return self.deps
-
-    def evaluate(self, values):
-        for k in self.deps:
-            assert values[k] == k
-        return self.name
-
-    def do_format(self, value):
-        return '{}: {}'.format(self.name, value)
-
-
-class IElem(DElem, frag.InputElem):
-    def __init__(self, name):
-        DElem.__init__(self, name, set())
-
-    def validate(self, value):
-        return (self.name, frag.InputElem.validate(self, value))
 
 
 @pytest.fixture

@@ -1,5 +1,9 @@
+import abc
+from six import with_metaclass
+
+
 class PFileLine:
-    pass
+    pass  # pragma nocoverage
 
 
 class CommentLine(PFileLine):
@@ -28,7 +32,7 @@ class ParserCollision(RuntimeError):
     pass
 
 
-class PFileParser:
+class PFileParser(with_metaclass(abc.ABCMeta)):
     _file_types = {}
     _file_extns = {}
 
@@ -63,11 +67,18 @@ class PFileParser:
             raise ParserNotFound("Extension {} ambiguous".format(extn))
         return PFileParser.parser_by_name(name, fobj)
 
+    @abc.abstractmethod
+    def __init__(self, fobj):
+        pass  # pragma nocoverage
+
+    @abc.abstractmethod
     def reset(self):
-        raise NotImplementedError()
+        pass  # pragma nocoverage
 
+    @abc.abstractmethod
     def lines(self):
-        raise NotImplementedError()
+        pass  # pragma nocoverage
 
+    @abc.abstractmethod
     def typeset_line(line):
-        raise NotImplementedError()
+        pass  # pragma nocoverage

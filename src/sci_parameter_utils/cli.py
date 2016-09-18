@@ -50,7 +50,7 @@ def template(params, ifile, out, interact, template):
                 sci_parameter_utils.fragment.TemplateElem
             ))
     except Exception as e:
-        click.echo("Error setting up template: {}".format(e.value))
+        click.echo("Error setting up template: {}".format(e))
         raise click.Abort()
 
     iReq = eset.get_inputs()
@@ -66,7 +66,7 @@ def template(params, ifile, out, interact, template):
         parser = (sci_parameter_utils.parsers.PFileParser
                   .parser_by_extn(extn))
     except Exception as e:
-        click.echo("Error getting parser: {}".format(e.value))
+        click.echo("Error getting parser: {}".format(e))
         raise click.Abort()
 
     if not out:
@@ -86,7 +86,7 @@ def template(params, ifile, out, interact, template):
                     try:
                         ivals[k] = eset.validate(k, click.prompt(p))
                     except ValueError as e:
-                        click.echo('Bad value for {}: {}'.format(k, e.value))
+                        click.echo('Bad value for {}: {}'.format(k, e))
             else:
                 click.echo("No value supplied for {}".format(k))
                 raise click.Abort()
@@ -96,7 +96,7 @@ def template(params, ifile, out, interact, template):
 
             fn = out.format(**ivals)
         except Exception as e:
-            click.echo("Error generating filename: {}".format(fn, e.value))
+            click.echo("Error generating filename: {}".format(fn, e))
             raise click.Abort()
 
         try:
@@ -107,51 +107,88 @@ def template(params, ifile, out, interact, template):
                           parser,
                           ivals))
         except Exception as e:
-            click.echo("Error templating file {}: {}".format(fn, e.value))
+            click.echo("Error templating file {}: {}".format(fn, e))
             raise click.Abort()
 
 
 @cli_main.command('print')
-@click.option('--defs', '-d', type=click.File('r'),
+@click.option('--deffile', '-d', type=click.File('r'),
               required=True,
               help="Parmeter definition file")
-@click.option('--locs', '-l', type=click.File('r'),
-              required=True,
-              help="Parameter location files")
-@click.option('--print-consts/--no-print-consts', default=True,
-              help="Indicate whether to include constants in output")
-@click.option('--print-nondims/--no-print-nondims', default=True,
-              help="Indicate whether to include nondimensional "
-              "parameters in output")
-@click.option('--print-scales/--no-print-scales', default=True,
-              help="Indicate whether to include characteristic scales "
-              "in output")
+@click.option('olist', '--print', '-p', default="",
+              help="List of sections to print")
 @click.argument('prmfiles', type=click.File('r'), nargs=-1)
-def parse_nondim_params(prmfiles, defs, locs,
-                        print_consts, print_nondims, print_scales):
-    """Prints constants and derived nondimensional quantities
-    defined in PRMFILES"""
-    ndim = sci_parameter_utils.nondim.NonDim()
-    ndim.add_from_dict(get_dict_from_file(defs))
+def print_vals(prmfiles, deffile, olist):
+    """Prints values from PRMFILES"""
+    try:
+        idict = get_dict_from_file(deffile)
+        deffile.close()
+    except Exception as e:
+        click.echo("Error setting loading def file: {}".format(e))
+        raise click.Abort()
 
-    # Find searcher using first filename as hint
-    searcher = False
+    try:
+        dset = sci_parameter_utils.fragment.TemplateElemSet(
+            sci_parameter_utils.fragment.elems_from_dict(
+                idict['elems'],
+                sci_parameter_utils.fragment.TemplateElem
+            ))
+    except Exception as e:
+        click.echo("Error setting up template: {}".format(e))
+        raise click.Abort()
+
+    try:
+        sset = sci_parameter_utils.fragment.elems_from_dict(
+            idict['locs'],
+            sci_parameter_utils.fragment.SearchElem
+        )
+    except Exception as e:
+        click.echo("Error generating search list: {}".format(e))
+        raise click.Abort()
+
+    try:
+        prlist = idict['print']
+
+        if olist:
+            olist = set(s.strip() for s in olist.split(','))
+        else:
+            olist = set(prlist.keys())
+    except Exception as e:
+        click.echo("Error collecting printing sections: {}".format(e))
+        raise click.Abort()
+
     extn = get_extn_from_file(prmfiles[0])
-    searcher = sci_parameter_utils.searcher.get_searcher_from_extn(extn)()
-    searcher.add_from_dict(get_dict_from_file(locs))
+    try:
+        parser = (sci_parameter_utils.parsers.PFileParser
+                  .parser_by_extn(extn))
+    except Exception as e:
+        click.echo("Error getting parser: {}".format(e))
+        raise click.Abort()
 
     for f in prmfiles:
         click.echo("Input {}:".format(f.name))
-        subs_list = searcher.parse_file(f)
-        if print_consts:
-            click.echo('Constants:')
-            ndim.write_consts(click.get_text_stream('stdout'), subs_list)
-        if print_nondims:
-            click.echo('Nondimensional Parameters:')
-            ndim.write_nondim(click.get_text_stream('stdout'), subs_list)
-        if print_scales:
-            click.echo('Scales:')
-            ndim.write_scales(click.get_text_stream('stdout'), subs_list)
+
+        try:
+            ivals = sci_parameter_utils.searcher.do_search(sset, f, parser)
+        except Exception as e:
+            click.echo("Error searching file: {}".format(e))
+            raise click.Abort()
+
+        try:
+            dset.compute_strings(ivals)
+        except Exception as e:
+            click.echo("Error generating strings: {}".format(e))
+            raise click.Abort()
+
+        try:
+            for k in prlist:
+                if k in olist:
+                    click.echo('Section {}'.format(k))
+                    for v in prlist[k]:
+                        click.echo('\t{} = {}'.format(v, ivals[v]))
+        except Exception as e:
+            click.echo("Error printing data: {}".format(e))
+            raise click.Abort()
         click.echo('-----')
 
 

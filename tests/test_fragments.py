@@ -1,6 +1,7 @@
 import pytest
 import sci_parameter_utils.fragment as frag
 import sympy
+import copy
 
 
 @pytest.mark.parametrize("tstr,name,args,error", [
@@ -202,3 +203,143 @@ def test_searchers(tstr, name, key, args, value, output):
     assert elem.get_name() == name
     assert elem.get_key() == key
     assert elem.get_value(value) == output
+
+
+@pytest.mark.parametrize("idict", [
+    {'a': {'type': 'b'}},
+    {'a': {'type': 'b'}, 'b': {'type': 'c', 'test': 'd'}}
+])
+def test_create_from_dict(idict, monkeypatch):
+    @staticmethod
+    def test_fn(tstr, name, args):
+        assert name in idict
+        assert 'name' not in args
+        assert 'type' not in args
+        assert set(idict[name].keys()) == set(['type']).union(args.keys())
+        for k in args:
+            assert idict[name][k] == args[k]
+
+    monkeypatch.setattr(frag.TemplateElem, 'elem_by_type', test_fn)
+    frag.elems_from_dict(copy.deepcopy(idict), frag.TemplateElem)
+
+
+@pytest.mark.parametrize("idict,error", [
+    ({'a': {'r': 'b'}}, "No type for element 'a'"),
+    ({'a': {'type': 'b'}, 'b': {'l': 'c', 'test': 'd'}},
+     "No type for element 'b'")
+])
+def test_no_type_create_from_dict(idict, error, monkeypatch):
+    @staticmethod
+    def test_fn(tstr, name, args):
+        pass
+
+    monkeypatch.setattr(frag.TemplateElem, 'elem_by_type', test_fn)
+    with pytest.raises(frag.InvalidElementError) as excinfo:
+        frag.elems_from_dict(copy.deepcopy(idict), frag.TemplateElem)
+
+    assert error == str(excinfo.value)
+
+
+class DElem(frag.TemplateElem):
+    def __init__(self, name, deps):
+        self.name = name
+        self.deps = deps
+
+    def get_name(self):
+        return frag.TemplateElem.get_name(self)
+
+    def get_dependencies(self):
+        return self.deps
+
+    def evaluate(self, values):
+        for k in self.deps:
+            assert values[k] == k
+        return self.name
+
+    def do_format(self, value):
+        return '{}: {}'.format(self.name, value)
+
+
+class IElem(DElem, frag.InputElem):
+    def __init__(self, name):
+        DElem.__init__(self, name, set())
+
+    def validate(self, value):
+        return (self.name, frag.InputElem.validate(self, value))
+
+
+@pytest.fixture
+def frag_elemset(request):
+    ins, dep_dict = request.param
+    edict = {}
+    # Setup
+    for i in ins:
+        edict[i] = IElem(i)
+    for k in dep_dict:
+        edict[k] = DElem(k, dep_dict[k])
+    return (ins, dep_dict, edict)
+
+
+@pytest.mark.parametrize("frag_elemset", [
+    (set("abc"), {'w': set('ac'), 't': set('aw')}),
+], indirect=['frag_elemset'])
+def test_elemset(frag_elemset):
+    ins, _, edict = frag_elemset
+    eset = frag.TemplateElemSet(edict)
+    assert eset.get_inputs() == ins
+    vals = {}
+    for i in ins:
+        for v in ['a', 'b']:
+            assert (i, str(v)) == eset.validate(i, v)
+        vals[i] = i
+
+    vals_str = copy.deepcopy(vals)
+    eset.compute_values(vals)
+    vals_str_cpy = copy.deepcopy(vals)
+    eset.compute_strings(vals_str)
+    eset.compute_strings(vals_str_cpy)
+    assert vals.keys() == vals_str.keys()
+    assert vals_str.keys() == vals_str_cpy.keys()
+    for k in vals:
+        assert k == vals[k]
+        assert vals_str[k] == '{}: {}'.format(k, k)
+        assert vals_str_cpy[k] == '{}: {}'.format(k, k)
+
+
+def test_fail_input_elemset(monkeypatch):
+    def test_fn(value):
+        raise ValueError()
+    k = 'a'
+    k2 = 'b'
+    assert not k == k2
+    v = 'b'
+    el = IElem(k)
+    monkeypatch.setattr(el, 'validate', test_fn)
+    edict = {
+        k: el
+    }
+    eset = frag.TemplateElemSet(edict)
+    with pytest.raises(frag.InvalidInputError) as excinfo:
+        eset.validate(k2, v)
+
+    assert str(excinfo.value).startswith('Invalid input name')
+
+    with pytest.raises(frag.InvalidInputError) as excinfo:
+        eset.validate(k, v)
+
+    assert str(excinfo.value).startswith('Bad value for')
+
+
+@pytest.mark.parametrize("frag_elemset,exc,error", [
+    ((set("abc"), {'w': set('dc'), 't': set('aw')}),
+     frag.DependencyError, "Unknown dependency"),
+    ((set("abc"), {'w': set('tc'), 't': set('aw')}),
+     frag.DependencyError, 'Cyclic element dependency including')
+], indirect=['frag_elemset'])
+def test_elemset_depfail(frag_elemset, exc, error):
+    ins, _, edict = frag_elemset
+    with pytest.raises(exc) as excinfo:
+        frag.TemplateElemSet(edict)
+
+    if error:
+        assert str(excinfo.value).startswith(error)

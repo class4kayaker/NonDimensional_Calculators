@@ -2,7 +2,7 @@ import sympy
 import sys
 import string
 import abc
-from six import with_metaclass
+from six import with_metaclass, raise_from
 if sys.version_info.major == 2:
     tr_func = string.maketrans
 else:
@@ -38,7 +38,7 @@ def elems_from_dict(idict, baseElem):
             tstr = e['type']
             del e['type']
         except KeyError:
-            raise InvalidElementError("No type for element {}".format(k))
+            raise InvalidElementError("No type for element '{}'".format(k))
         elems[k] = baseElem.elem_by_type(tstr, k, e)
     return elems
 
@@ -61,35 +61,6 @@ class TemplateElemSet:
         self._compute_order()
         self._collect_inputs()
 
-    def _collect_inputs(self):
-        self.inputs = set()
-        for k in self.elements:
-            e = self.elements[k]
-            if isinstance(e, InputElem):
-                self.inputs.add(k)
-
-    def get_inputs(self):
-        return self.inputs
-
-    def validate(self, k, v):
-        if k in self.inputs:
-            try:
-                return self.elements[k].validate(v)
-            except ValueError:
-                raise InvalidInputError(
-                    "Bad value for {}".format(k))
-        else:
-            raise InvalidInputError(
-                "Invalid input name {}".format(k))
-
-    def compute_strs(self, valdict):
-        for k in self.order:
-            if k in valdict:
-                continue
-            valdict[k] = self.elements[k].evaluate(valdict)
-        for k in valdict:
-            valdict[k] = self.elements[k].do_format(valdict[k])
-
     def _compute_order(self):
         searching = set()
         order = []
@@ -111,6 +82,40 @@ class TemplateElemSet:
         searching.remove(k)
         order.append(k)
         return
+
+    def _collect_inputs(self):
+        self.inputs = set()
+        for k in self.elements:
+            e = self.elements[k]
+            if isinstance(e, InputElem):
+                self.inputs.add(k)
+
+    def get_inputs(self):
+        return self.inputs
+
+    def validate(self, k, v):
+        if k in self.inputs:
+            try:
+                return self.elements[k].validate(v)
+            except ValueError as e:
+                raise_from(
+                    InvalidInputError(
+                        "Bad value for {}".format(k)),
+                    e)
+        else:
+            raise InvalidInputError(
+                "Invalid input name {}".format(k))
+
+    def compute_values(self, valdict):
+        for k in self.order:
+            if k in valdict:
+                continue
+            valdict[k] = self.elements[k].evaluate(valdict)
+
+    def compute_strings(self, valdict):
+        self.compute_values(valdict)
+        for k in valdict:
+            valdict[k] = self.elements[k].do_format(valdict[k])
 
 
 class TemplateElem(with_metaclass(abc.ABCMeta)):
@@ -140,6 +145,12 @@ class TemplateElem(with_metaclass(abc.ABCMeta)):
         self implies expectation of external definition"""
         return set()
 
+    @abc.abstractmethod
+    def evaluate(self, values):
+        """Method returning value of the element suitable for use in final
+        file"""
+        pass
+
     def do_format(self, value):
         """Method returning formatted string when given result of evaluate"""
         return str(value)
@@ -155,6 +166,11 @@ class InputElem(TemplateElem):
 
     def get_dependencies(self):
         return TemplateElem.get_dependencies(self)
+
+    def evaluate(self, values):
+        """Method returning value of the element suitable for use in final
+        file"""
+        pass
 
     @abc.abstractmethod
     def validate(self, istr):

@@ -76,12 +76,17 @@ class PRMParser(PFileParser):
     @staticmethod
     def typeset_line(line):
         if line.ltype == "Comment":
-            return '# '+line.comment
+            return '# {}\n'.format(line.comment)
         elif line.ltype == "Control":
-            return '  '*line.level+line.line
+            return ('{ind:<{ind_s}}{line}\n'
+                    .format(ind='',
+                            ind_s=2*line.level,
+                            line=line.line))
         elif line.ltype == "KeyValue":
-            return ('  '*line.level+'set ' +
-                    line.key.rsplit(':', 1)[-1]+' = ' +
-                    line.value)
+            return ('{ind:<{indsp}}set {key} = {value}\n'
+                    .format(ind='',
+                            indsp=2*line.level,
+                            key=line.key.rsplit(':', 1)[-1],
+                            value=line.value))
         else:
-            return ''
+            return '\n'

@@ -57,6 +57,19 @@ def test_parser_parse_invalid(parser, param_file, tmpdir):
 
 
 @pytest.mark.parametrize(
+    "parser,line,out",
+    [(parsers.PRMParser, l, o) for l, o in [
+        (parsers.CommentLine('Test'), '# Test\n'),
+        (parsers.ControlLine('Test', 1), '  Test\n'),
+        (parsers.ValueLine('Test', 'Out', 1), '  set Test = Out\n')
+    ]]
+)
+def test_parser_typesetting(parser, line, out):
+    l = parser.typeset_line(line)
+    assert l == out
+
+
+@pytest.mark.parametrize(
     "parser,param_file",
     [(parsers.PRMParser, fn)
      for fn in list_files(parser_dir("dealIIPRM"), '*_rtrip.prm')],
@@ -67,7 +80,6 @@ def test_parser_rtrip_rw(parser, param_file, tmpdir):
     with tmpdir.join(fn1).open('w+') as testfile:
         for l in parser.lines(param_file):
             testfile.write(parser.typeset_line(l))
-            testfile.write('\n')
 
     del testfile
 

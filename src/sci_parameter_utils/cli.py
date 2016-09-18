@@ -3,6 +3,7 @@ import json
 import sci_parameter_utils.nondim
 import sci_parameter_utils.searcher
 import sci_parameter_utils.fragment
+import sci_parameter_utils.parsers
 import sci_parameter_utils.templater
 import yaml
 
@@ -45,10 +46,13 @@ def template(params, ifile, out, interact, template):
     try:
         eset = sci_parameter_utils.fragment.TemplateElemSet(
             sci_parameter_utils.fragment.elems_from_dict(
-                get_dict_from_file(params)))
-    except RuntimeError as e:
-        click.echo("Error setting up template: {}".format(e))
+                get_dict_from_file(params),
+                sci_parameter_utils.fragment.TemplateElem
+            ))
+    except Exception as e:
+        click.echo("Error setting up template: {}".format(e.value))
         raise click.Abort()
+
     iReq = eset.get_inputs()
     if ifile:
         iList = get_dict_from_file(ifile)
@@ -57,11 +61,16 @@ def template(params, ifile, out, interact, template):
     else:
         iList = [{}]
 
-    templater = False
     extn = get_extn_from_file(template)
-    templater = sci_parameter_utils.templater.get_templater_from_extn(extn)()
+    try:
+        parser = (sci_parameter_utils.parsers.PFileParser
+                  .parser_by_extn(extn))
+    except Exception as e:
+        click.echo("Error getting parser: {}".format(e.value))
+        raise click.Abort()
+
     if not out:
-        out = templater.get_fn_suggest(template)
+        out = sci_parameter_utils.templater.get_fn_suggest(template, parser)
     if not out:
         out = 'output.'+extn
 
@@ -79,16 +88,17 @@ def template(params, ifile, out, interact, template):
                 raise click.Abort()
 
         try:
-            eset.compute_strs(ivals)
+            eset.compute_strings(ivals)
 
-            fn = templater.replace(out, ivals)
+            fn = out.format(**ivals)
             click.echo(fn)
-            template.seek(0, 0)
-            templater.template_file(template,
-                                    click.open_file(fn, 'w'),
-                                    ivals)
-        except RuntimeError as e:
-            click.echo("{}".format(e))
+            (sci_parameter_utils.templater
+             .do_template(template,
+                          click.open_file(fn, 'w'),
+                          parser,
+                          ivals))
+        except Exception as e:
+            click.echo("{}".format(e.value))
             raise click.Abort()
 
 

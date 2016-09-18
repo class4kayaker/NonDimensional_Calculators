@@ -1,0 +1,5 @@
+set Key = 1
+
+subsection Sub
+  set Key = 2
+end

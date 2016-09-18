@@ -54,7 +54,9 @@ class PRMParser(PFileParser):
             elif(command == 'set'):
                 key, value = remainder.split('=', 1)
                 position.append(key.strip())
-                yield ValueLine(':'.join(position), value.strip, len(position))
+                yield ValueLine(':'.join(position),
+                                value.strip(),
+                                len(position)-1)
                 position.pop()
             else:
                 raise ValueError(
@@ -62,11 +64,13 @@ class PRMParser(PFileParser):
                                                         remainder))
 
     def typeset_line(self, line):
-        if isinstance(line, CommentLine):
+        if line.ltype == "Comment":
             return '# '+line.comment
-        elif isinstance(line, ControlLine):
+        elif line.ltype == "Control":
             return '  '*line.level+line.line
-        elif isinstance(line, ValueLine):
-            return '  '*line.level+'set '+line.key+' = '+line.value
+        elif line.ltype == "KeyValue":
+            return ('  '*line.level+'set ' +
+                    line.key.rsplit(':', 1)[-1]+' = ' +
+                    line.value)
         else:
             return ''

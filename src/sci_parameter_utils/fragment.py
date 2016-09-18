@@ -3,10 +3,8 @@ import sys
 import string
 import abc
 from six import with_metaclass, raise_from
-if sys.version_info.major == 2:
-    tr_func = string.maketrans
-else:
-    tr_func = str.maketrans
+# get consistent access to str.maketrans equivalent across versions
+tr_func = string.maketrans if sys.version_info.major == 2 else str.maketrans
 
 
 def _register_by_type(etype, base_class, store_dict):
@@ -149,7 +147,7 @@ class TemplateElem(with_metaclass(abc.ABCMeta)):
     def evaluate(self, values):
         """Method returning value of the element suitable for use in final
         file"""
-        pass
+        pass  # pragma nocover
 
     def do_format(self, value):
         """Method returning formatted string when given result of evaluate"""
@@ -170,7 +168,7 @@ class InputElem(TemplateElem):
     def evaluate(self, values):
         """Method returning value of the element suitable for use in final
         file"""
-        pass
+        pass  # pragma nocover
 
     @abc.abstractmethod
     def validate(self, istr):
@@ -203,11 +201,7 @@ class StrElem(InputElem):
 
 
 class ExprElem(TemplateElem):
-    @abc.abstractmethod
-    def evaluate(self, values):
-        """Method returning value of the element suitable for use in final
-        file"""
-        pass
+    pass
 
 
 @TemplateElem.register_type('expr')

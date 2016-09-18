@@ -18,7 +18,7 @@ setup(
     name=package,
     version=version,
     package_dir={'': 'src'},
-    packages=find_packages('src'),
+    packages=find_packages(where='src'),
     install_requires=dependencies,
     entry_points={
         'console_scripts': [

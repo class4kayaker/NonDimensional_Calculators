@@ -1,6 +1,6 @@
 import re
 from sci_parameter_utils.parameter_file import (
-    PFileParser, PFileLine, KeyValuePair)
+    PFileParser, PFileLine)
 
 
 @PFileParser.register_type("dealIIPRM", "prm")
@@ -41,12 +41,11 @@ class PRMParser(PFileParser):
                                      level=len(position))
                 elif(command == 'set'):
                     key, value = remainder.split('=', 1)
-                    return PFileLine("KeyValue",
-                                     KeyValuePair(
-                                         ':'.join(position+[key.strip()]),
-                                         value.strip()),
-                                     lnum=lnum,
-                                     level=len(position))
+                    return PFileLine.keyvalueline(
+                        ':'.join(position+[key.strip()]),
+                        value.strip(),
+                        lnum=lnum,
+                        level=len(position))
                 else:
                     raise ValueError()
             except ValueError:
@@ -64,9 +63,9 @@ class PRMParser(PFileParser):
             # Strip comments
             if '#' in line:
                 line, comment = line.split('#', 1)
-                yield PFileLine("Comment",
-                                comment.strip(),
-                                lnum=linenum)
+                yield PFileLine.commentline(
+                    comment.strip(),
+                    lnum=linenum)
                 if not line.strip():
                     continue
 

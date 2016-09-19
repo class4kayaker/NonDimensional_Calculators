@@ -102,9 +102,9 @@ def test_parser_parse_invalid(parser, param_file, tmpdir):
 @pytest.mark.parametrize(
     "parser,line,out",
     [(parsers.PRMParser, l, o) for l, o in [
-        (parsers.PFileLine('Comment', 'Test'), '# Test\n'),
+        (parsers.PFileLine.commentline('Test'), '# Test\n'),
         (parsers.PFileLine('Control', 'Test', level=1), '  Test\n'),
-        (parsers.PFileLine('KeyValue', parsers.KeyValuePair('Test', 'Out'), 1),
+        (parsers.PFileLine.keyvalueline('Test', 'Out', 1),
          '  set Test = Out\n')
     ]]
 )

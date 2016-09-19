@@ -1,20 +1,34 @@
-# <KeyValue [Line 3](0): <Key = 1>>
+# L: <None [Line 11](0): None>
+# L: <None [Line 12](0): None>
+# L: <Comment [Line 13](0): Comment 1>
+# L: <KeyValue [Line 15](0): <Key = 1>>
+# L: <Comment [Line 19](0): Comment 2 \>
+# L: <Control [Line 23](0): subsection Sub>
+# L: <Comment [Line 25](0): Comment 3>
+# L: <KeyValue [Line 29](1): <Sub:Key = 2>>
+# L: <Comment [Line 31](0): Comment 4>
+# L: <Control [Line 35](0): end>
+
+
+\ # Comment 1
 set Key \
     = 1
 \
 \
 \
-# <Control [Line 11](0): subsection Sub>
+# Comment 2 \
 subsection \
 \
 \
 Sub
-  # <KeyValue [Line 16](1): <Sub:Key = 2>>
   set \
+  \ # Comment 3
+  \
 Key\
 =\
 2
-# <Control [Line 21](0): end>
+\
+# Comment 4
 \
 \
 \

@@ -64,14 +64,15 @@ def test_parser_parse(parser, param_file, tmpdir):
     with tmpdir.join(cfn).open('w') as cf, \
             tmpdir.join(pfn).open('w') as pf:
         for l in parser.lines(param_file):
+            cfmt = '# {}\n'
+            pfmt = '# L: {}\n'
             if l.ltype == "Comment":
-                cf.write('{}\n'.format(str(l)))
-                pf.write('{}\n'.format(str(l)))
-                cf.write('{}\n'.format(l.value))
-            elif l.ltype is None:
-                pass
+                if l.value.startswith('L: '):
+                    cf.write(cfmt.format(l.value))
+                else:
+                    pf.write(pfmt.format(str(l)))
             else:
-                pf.write('{}\n'.format(str(l)))
+                pf.write(pfmt.format(str(l)))
 
     with tmpdir.join(cfn).open('r') as cf, \
             tmpdir.join(pfn).open('r') as pf:

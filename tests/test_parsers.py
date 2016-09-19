@@ -114,6 +114,18 @@ def test_parser_typesetting(parser, line, out):
 
 
 @pytest.mark.parametrize(
+    "parser,line,error",
+    [(parsers.PRMParser, l, o) for l, o in [
+        (parsers.PFileLine('Unk', 'Test'), 'Unknown linetype: Unk'),
+    ]]
+)
+def test_parser_typesetting_invalid(parser, line, error):
+    with pytest.raises(ValueError) as excinfo:
+        parser.typeset_line(line)
+    assert str(excinfo.value) == error
+
+
+@pytest.mark.parametrize(
     "parser,param_file",
     get_parser_tests(full_parser_list, '*_rtrip.*'),
     indirect=['param_file']

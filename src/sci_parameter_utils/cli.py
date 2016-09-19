@@ -1,6 +1,5 @@
 import click
 import json
-import sci_parameter_utils.nondim
 import sci_parameter_utils.fragment
 import sci_parameter_utils.parsers
 import sci_parameter_utils.general

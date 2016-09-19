@@ -66,6 +66,10 @@ def test_parser_parse(parser, param_file, tmpdir):
         for l in parser.lines(param_file):
             cfmt = '# {}\n'
             pfmt = '# L: {}\n'
+            if l.ltype == "KeyValue":
+                assert hasattr(l.value, 'key')
+                assert hasattr(l.value, 'value')
+
             if l.ltype == "Comment":
                 if l.value.startswith('L: '):
                     cf.write(cfmt.format(l.value))

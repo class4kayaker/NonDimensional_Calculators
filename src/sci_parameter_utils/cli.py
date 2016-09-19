@@ -83,7 +83,8 @@ def template(params, ifile, out, interact, template):
                 elif interact:
                     def validate(v):
                             return eset.validate(k, v)
-                    click.prompt("{}".format(k), value_proc=validate)
+                    ivals[k] = click.prompt("{}".format(k),
+                                            value_proc=validate)
                 else:
                     missing.add(k)
             if missing:
@@ -100,13 +101,15 @@ def template(params, ifile, out, interact, template):
             click.echo("Error generating filename: {}".format(e))
             raise click.Abort()
 
+        click.echo(fn)
+        (sci_parameter_utils.general
+         .do_template(template,
+                      click.open_file(fn, 'w'),
+                      parser,
+                      ivals))
+
         try:
-            click.echo(fn)
-            (sci_parameter_utils.general
-             .do_template(template,
-                          click.open_file(fn, 'w'),
-                          parser,
-                          ivals))
+            pass
         except Exception as e:
             click.echo("Error templating file {}: {}".format(fn, e))
             raise click.Abort()

@@ -6,7 +6,7 @@ without access to the original filesystem.
 from setuptools import find_packages, setup
 
 package = 'sci_parameter_utils'
-version = '0.2.0'
+version = '0.3.0'
 dependencies = [
     'click',
     'pyyaml',

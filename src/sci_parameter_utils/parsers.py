@@ -92,7 +92,9 @@ class PRMParser(PFileParser):
 
     @staticmethod
     def typeset_line(line):
-        if line.ltype == "Comment":
+        if line.ltype is None:
+            return '\n'
+        elif line.ltype == "Comment":
             return '# {}\n'.format(line.value)
         elif line.ltype == "Control":
             return ('{ind:<{ind_s}}{line}\n'
@@ -106,4 +108,4 @@ class PRMParser(PFileParser):
                             key=line.value.key.rsplit(':', 1)[-1],
                             value=line.value.value))
         else:
-            return '\n'
+            raise ValueError("Unknown linetype: {}".format(line.ltype))

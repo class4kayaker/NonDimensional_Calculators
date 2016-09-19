@@ -34,15 +34,23 @@ def get_parser_tests(plist, endglob):
     return olist
 
 
-def diff_files(f1, f2):
-    diff = ''.join(difflib.unified_diff(
+def assert_nodiff_files(f1, f2, maxlen=50):
+    diff = difflib.unified_diff(
         f1.readlines(),
-        f2.readlines()))
-    if diff:
-        print(diff)
+        f2.readlines())
+
+    diffl = ''
+    n = maxlen
+    for l in diff:
+        if n <= 0:
+            break
+        n -= 1
+        diffl += l
+    if diffl:
+        print(diffl)
         assert False
     else:
-        assert '' == diff
+        assert '' == diffl
 
 
 @pytest.mark.parametrize(
@@ -67,7 +75,7 @@ def test_parser_parse(parser, param_file, tmpdir):
 
     with tmpdir.join(cfn).open('r') as cf, \
             tmpdir.join(pfn).open('r') as pf:
-        diff_files(cf, pf)
+        assert_nodiff_files(cf, pf)
 
 
 @pytest.mark.parametrize(
@@ -143,10 +151,10 @@ def test_parser_rtrip_rw2(parser, param_file, tmpdir):
 
     param_file.seek(0, 0)
     with tmpdir.join(fn1).open('r') as testfile:
-        diff_files(param_file, testfile)
+        assert_nodiff_files(param_file, testfile)
 
     del testfile
 
     param_file.seek(0, 0)
     with tmpdir.join(fn2).open('r') as testfile:
-        diff_files(param_file, testfile)
+        assert_nodiff_files(param_file, testfile)

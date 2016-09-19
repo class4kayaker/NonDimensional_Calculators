@@ -34,6 +34,68 @@ def test_create_fline(ltype, lnum, level, value):
                               str(a.value)))
 
 
+@pytest.mark.parametrize("lnum", [
+    1,
+    4,
+    5,
+    10
+])
+@pytest.mark.parametrize("value", [
+    "Val 1"
+    "Val 2"
+])
+def test_create_fline_c(value, lnum):
+    a = prm_file.PFileLine.commentline(value,
+                                       lnum=lnum)
+
+    assert a.ltype == "Comment"
+    assert a.value == value
+    assert a.lnum == lnum
+    assert str(a) == ("<{} [Line {}]({}): {}>"
+                      .format(a.ltype,
+                              lnum,
+                              0,
+                              value))
+
+
+@pytest.mark.parametrize("lnum", [
+    1,
+    4,
+    5,
+    10
+])
+@pytest.mark.parametrize("level", [
+    0,
+    3,
+    2
+])
+@pytest.mark.parametrize("key", [
+    "Key 1"
+    "Key 2"
+])
+@pytest.mark.parametrize("value", [
+    "Val 1"
+    "Val 2"
+])
+def test_create_fline_kv(key, value, level, lnum):
+    a = prm_file.PFileLine.keyvalueline(key,
+                                        value,
+                                        level,
+                                        lnum)
+
+    assert a.ltype == "KeyValue"
+    assert a.value.key == key
+    assert a.value.value == value
+    assert a.level == level
+    assert a.lnum == lnum
+    assert str(a) == ("<{} [Line {}]({}): <{} = {}>>"
+                      .format(a.ltype,
+                              lnum,
+                              level,
+                              key,
+                              value))
+
+
 @pytest.fixture
 def create_mock_parser():
     def internal(name, extn):

@@ -28,6 +28,17 @@ class PFileLine:
                         self.level,
                         self.value))
 
+    @staticmethod
+    def commentline(comment, lnum=0):
+        return PFileLine("Comment", comment, lnum=lnum)
+
+    @staticmethod
+    def keyvalueline(key, value, level=0, lnum=0):
+        return PFileLine("KeyValue",
+                         KeyValuePair(key, value),
+                         level=level,
+                         lnum=lnum)
+
 
 class KeyValuePair:
     __slots__ = ['key', 'value']

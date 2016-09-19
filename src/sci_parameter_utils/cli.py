@@ -38,8 +38,10 @@ def cli_main():
               help="Name format for output file")
 @click.option('--interact/--no-interact', default=False,
               help="Allow interactive value supply")
+@click.option('list_fns', '--list/--no-list', '-l', default=False,
+              help="List names of output files only")
 @click.argument('template', type=click.File('r'))
-def template(params, ifile, out, interact, template):
+def template(params, ifile, out, interact, template, list_fns):
     """Generate parameter files from TEMPLATE"""
     try:
         eset = sci_parameter_utils.fragment.TemplateElemSet(
@@ -102,14 +104,16 @@ def template(params, ifile, out, interact, template):
             raise click.Abort()
 
         click.echo(fn)
-        (sci_parameter_utils.general
-         .do_template(template,
-                      click.open_file(fn, 'w'),
-                      parser,
-                      ivals))
+
+        if list_fns:
+            continue
 
         try:
-            pass
+            (sci_parameter_utils.general
+             .do_template(template,
+                          click.open_file(fn, 'w'),
+                          parser,
+                          ivals))
         except Exception as e:
             click.echo("Error templating file {}: {}".format(fn, e))
             raise click.Abort()

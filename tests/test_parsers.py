@@ -43,7 +43,7 @@ def test_parser_parse(parser, param_file, tmpdir):
     for l in parser.lines(param_file):
         if l.ltype == "Comment":
             assert next_line == ''
-            next_line = l.comment
+            next_line = l.value
         elif l.ltype is None:
             assert next_line == ''
         else:
@@ -60,7 +60,7 @@ def test_parser_parse_invalid(parser, param_file, tmpdir):
     lgen = parser.lines(param_file)
     fline = next(lgen)
     assert fline.ltype == "Comment"
-    error = fline.comment
+    error = fline.value
     with pytest.raises(ValueError) as excinfo:
         for l in lgen:
             pass
@@ -70,9 +70,10 @@ def test_parser_parse_invalid(parser, param_file, tmpdir):
 @pytest.mark.parametrize(
     "parser,line,out",
     [(parsers.PRMParser, l, o) for l, o in [
-        (parsers.CommentLine('Test'), '# Test\n'),
-        (parsers.ControlLine('Test', 1), '  Test\n'),
-        (parsers.ValueLine('Test', 'Out', 1), '  set Test = Out\n')
+        (parsers.PFileLine('Comment', 'Test'), '# Test\n'),
+        (parsers.PFileLine('Control', 'Test', level=1), '  Test\n'),
+        (parsers.PFileLine('KeyValue', parsers.KeyValuePair('Test', 'Out'), 1),
+         '  set Test = Out\n')
     ]]
 )
 def test_parser_typesetting(parser, line, out):

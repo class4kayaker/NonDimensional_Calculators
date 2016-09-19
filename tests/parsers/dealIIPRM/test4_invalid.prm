@@ -1,0 +1,8 @@
+# Line 7: Bad command end with arg test
+set Key = 1
+
+subsection Sub
+  subsection Sub
+    set Key = 2
+  end test
+end

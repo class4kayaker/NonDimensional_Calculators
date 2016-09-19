@@ -3,52 +3,47 @@ from six import with_metaclass
 
 
 class PFileLine:
-    ltype = None
-    pass  # pragma nocoverage
+    __slots__ = ['lnum', 'ltype', 'level', 'value']
 
-
-class CommentLine(PFileLine):
-    ltype = "Comment"
-
-    def __init__(self, comment):
-        self.comment = comment
-
-    def __repr__(self):
-        return "<{}: {}>".format(self.__class__, self.comment)
-
-    def __str__(self):
-        return "<{}: {}>".format(self.ltype, self.comment)
-
-
-class ControlLine(PFileLine):
-    ltype = "Control"
-
-    def __init__(self, line, level):
-        self.line = line
+    def __init__(self, ltype, value, level=0, lnum=0):
+        assert level >= 0
+        assert lnum >= 0
+        self.lnum = lnum
+        self.ltype = ltype
         self.level = level
+        self.value = value
 
-    def __repr__(self):
-        return "<{}: ({}) {}>".format(self.__class__, self.level, self.line)
+    def __repr__(self):  # pragma nocoverage
+        return ("<{}: {} [Line {}]({}): {}>"
+                .format(repr(self.__class__),
+                        repr(self.ltype),
+                        repr(self.lnum),
+                        repr(self.level),
+                        repr(self.value)))
 
     def __str__(self):
-        return "<{}: ({}) {}>".format(self.ltype, self.level, self.line)
+        return ("<{} [Line {}]({}): {}>"
+                .format(self.ltype,
+                        self.lnum,
+                        self.level,
+                        self.value))
 
 
-class ValueLine(PFileLine):
-    ltype = "KeyValue"
+class KeyValuePair:
+    __slots__ = ['key', 'value']
 
-    def __init__(self, key, value, level):
+    def __init__(self, key, value):
         self.key = key
         self.value = value
-        self.level = level
 
-    def __repr__(self):
-        return "<{}: ({}) {} = {}>".format(self.__class__, self.level,
-                                           self.key, self.value)
+    def __repr__(self):  # pragma nocoverage
+        return "<{}: {} = {}>".format(self.__class__,
+                                      repr(self.key),
+                                      repr(self.value))
 
     def __str__(self):
-        return "<{}: ({}) {} = {}>".format(self.ltype, self.level,
-                                           self.key, self.value)
+        return "<{} = {}>".format(self.key,
+                                  self.value)
 
 
 class ParserNotFound(RuntimeError):

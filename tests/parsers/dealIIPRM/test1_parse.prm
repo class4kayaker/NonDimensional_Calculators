@@ -1,10 +1,10 @@
-# <KeyValue: (0) Key = 1>
+# <KeyValue [Line 2](0): <Key = 1>>
 set Key = 1
 
 
-# <Control: (0) subsection Sub>
+# <Control [Line 6](0): subsection Sub>
 subsection Sub
-  # <KeyValue: (1) Sub:Key = 2>
+  # <KeyValue [Line 8](1): <Sub:Key = 2>>
   set Key = 2
-# <Control: (0) end>
+# <Control [Line 10](0): end>
 end

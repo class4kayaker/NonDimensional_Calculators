@@ -1,6 +1,7 @@
 import os.path
 import glob
 import pytest
+import difflib
 import sci_parameter_utils.parsers as parsers
 
 full_parser_list = parsers.PFileParser._file_types.keys()
@@ -33,22 +34,40 @@ def get_parser_tests(plist, endglob):
     return olist
 
 
+def diff_files(f1, f2):
+    diff = ''.join(difflib.unified_diff(
+        f1.readlines(),
+        f2.readlines()))
+    if diff:
+        print(diff)
+        assert False
+    else:
+        assert '' == diff
+
+
 @pytest.mark.parametrize(
     "parser,param_file",
     get_parser_tests(full_parser_list, '*_parse.*'),
     indirect=['param_file']
 )
 def test_parser_parse(parser, param_file, tmpdir):
-    next_line = ''
-    for l in parser.lines(param_file):
-        if l.ltype == "Comment":
-            assert next_line == ''
-            next_line = l.value
-        elif l.ltype is None:
-            assert next_line == ''
-        else:
-            assert str(l) == next_line
-            next_line = ''
+    cfn = 'out-c'
+    pfn = 'out-p'
+    with tmpdir.join(cfn).open('w') as cf, \
+            tmpdir.join(pfn).open('w') as pf:
+        for l in parser.lines(param_file):
+            if l.ltype == "Comment":
+                cf.write('{}\n'.format(str(l)))
+                pf.write('{}\n'.format(str(l)))
+                cf.write('{}\n'.format(l.value))
+            elif l.ltype is None:
+                pass
+            else:
+                pf.write('{}\n'.format(str(l)))
+
+    with tmpdir.join(cfn).open('r') as cf, \
+            tmpdir.join(pfn).open('r') as pf:
+        diff_files(cf, pf)
 
 
 @pytest.mark.parametrize(
@@ -88,7 +107,8 @@ def test_parser_typesetting(parser, line, out):
 )
 def test_parser_rtrip_rw(parser, param_file, tmpdir):
     fn1 = 'out'
-    with tmpdir.join(fn1).open('w+') as testfile:
+    param_file.seek(0, 0)
+    with tmpdir.join(fn1).open('w') as testfile:
         for l in parser.lines(param_file):
             testfile.write(parser.typeset_line(l))
 
@@ -96,8 +116,10 @@ def test_parser_rtrip_rw(parser, param_file, tmpdir):
 
     param_file.seek(0, 0)
     with tmpdir.join(fn1).open('r') as testfile:
-        for l1, l2 in zip(param_file, testfile):
-            assert l1 == l2
+        diff = ''.join(difflib.unified_diff(
+            param_file.readlines(),
+            testfile.readlines()))
+        assert '' == diff
 
 
 @pytest.mark.parametrize(
@@ -108,20 +130,23 @@ def test_parser_rtrip_rw(parser, param_file, tmpdir):
 def test_parser_rtrip_rw2(parser, param_file, tmpdir):
     fn1 = 'out'
     fn2 = 'out2'
-    with tmpdir.join(fn1).open('w+') as testfile:
+    with tmpdir.join(fn1).open('w') as testfile:
         for l in parser.lines(param_file):
             testfile.write(parser.typeset_line(l))
 
     with tmpdir.join(fn1).open('r') as testfile,\
-            tmpdir.join(fn2).open('w+') as testfile2:
+            tmpdir.join(fn2).open('w') as testfile2:
         for l in parser.lines(testfile):
             testfile2.write(parser.typeset_line(l))
 
     del testfile
 
     param_file.seek(0, 0)
-    with tmpdir.join(fn1).open('r') as testfile,\
-            tmpdir.join(fn2).open('r') as testfile2:
-        for l1, l2, l3 in zip(param_file, testfile, testfile2):
-            assert l1 == l2
-            assert l2 == l3
+    with tmpdir.join(fn1).open('r') as testfile:
+        diff_files(param_file, testfile)
+
+    del testfile
+
+    param_file.seek(0, 0)
+    with tmpdir.join(fn2).open('r') as testfile:
+        diff_files(param_file, testfile)

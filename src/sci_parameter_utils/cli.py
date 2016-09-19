@@ -76,27 +76,29 @@ def template(params, ifile, out, interact, template):
     for d in iList:
         ivals = {}
         click.echo('Getting input values')
-        for k in iReq:
-            if k in d:
-                ivals[k] = eset.validate(k, d[k])
-            elif interact:
-                p = "{}".format(k)
-                while True:
-                    try:
-                        ivals[k] = eset.validate(k, click.prompt(p))
-                        break
-                    except ValueError as e:
-                        click.echo('Try again: {}'.format(e))
-            else:
-                click.echo("No value supplied for {}".format(k))
-                raise click.Abort()
+        try:
+            missing = set()
+            for k in iReq:
+                if k in d:
+                    ivals[k] = eset.validate(k, d[k])
+                elif interact:
+                    def validate(v):
+                            return eset.validate(k, v)
+                    click.prompt("{}".format(k), value_proc=validate)
+                else:
+                    missing.add(k)
+            if missing:
+                raise ValueError("No value supplied for {}".format(missing))
+        except Exception as e:
+            click.echo("Error obtaining input values: {}".format(e))
+            raise click.Abort()
 
         try:
             eset.compute_strings(ivals)
 
             fn = out.format(**ivals)
         except Exception as e:
-            click.echo("Error generating filename: {}".format(fn, e))
+            click.echo("Error generating filename: {}".format(e))
             raise click.Abort()
 
         try:

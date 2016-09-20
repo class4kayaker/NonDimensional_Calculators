@@ -1,6 +1,11 @@
 import pytest
 import sci_parameter_utils.general as gen
 import sci_parameter_utils.parameter_file as prm_file
+import sci_parameter_utils.fragment as frags
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO
 
 
 @pytest.mark.parametrize("istr,values,ostr", [
@@ -48,3 +53,52 @@ def test_fn_suggest_basic(parser, tmpdir, sugg, ostr):
 
     with tmpdir.join(fn).open('r') as f:
         assert ostr == gen.get_fn_suggest(f, parser)
+
+
+@pytest.mark.parametrize("key", [
+    "Key1",
+    "Key2"
+])
+@pytest.mark.parametrize("name", [
+    'a',
+])
+@pytest.mark.parametrize("value", [
+    ('Hello', str),
+    (1, int),
+    (1.0, float),
+])
+def test_fn_template_basic(parser, tmpdir, key, name, value):
+    lt = prm_file.PFileLine.keyvalueline(key, '{{{'+name+'}}}')
+    lo = prm_file.PFileLine.keyvalueline(key, value)
+    smap = {name: '{}'.format(value)}
+    f_t = StringIO(parser.typeset_line(lt))
+    f_o = StringIO(parser.typeset_line(lo))
+    f_g = StringIO()
+    try:
+        gen.do_template(f_t, f_g, parser, smap)
+        assert f_g.getvalue() == f_o.getvalue()
+    finally:
+        f_t.close()
+        f_o.close()
+        f_g.close()
+
+
+@pytest.mark.parametrize("key", [
+    "Key1",
+    "Key2"
+])
+@pytest.mark.parametrize("value,vf", [
+    ('Hello', str),
+    (1, int),
+    (1.0, float),
+])
+def test_fn_search_basic(parser, tmpdir, key, value, vf):
+    fn = 'out'
+    n = 'Name'
+    smap = {n: frags.LocElem(n, key)}
+    l = prm_file.PFileLine.keyvalueline(key, value)
+    tmpdir.join(fn).write(parser.typeset_line(l))
+
+    with tmpdir.join(fn).open('r') as f:
+        out = gen.do_search(smap, f, parser)
+        assert value == vf(out[n])

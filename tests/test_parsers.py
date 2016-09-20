@@ -7,6 +7,17 @@ import sci_parameter_utils.parsers as parsers
 full_parser_list = parsers.PFileParser._file_types.keys()
 
 
+@pytest.fixture
+def parser(request):
+    return parsers.PFileParser.parser_by_name(request.param)
+
+
+@pytest.fixture
+def param_file(request):
+    with open(request.param, 'r') as f:
+        yield f
+
+
 def list_files(dirn, fnglob):
     gl = os.path.join(dirn, fnglob)
     return glob.glob(gl)
@@ -18,18 +29,11 @@ def parser_dir(name):
                         name)
 
 
-@pytest.fixture
-def param_file(request):
-    with open(request.param, 'r') as f:
-        yield f
-
-
 def get_parser_tests(plist, endglob):
     olist = []
     for pn in plist:
-        p = parsers.PFileParser.parser_by_name(pn)
         olist.extend(
-            [(p, fn) for fn in
+            [(pn, fn) for fn in
              list_files(parser_dir(pn), endglob)])
     return olist
 
@@ -47,16 +51,14 @@ def assert_nodiff_files(f1, f2, maxlen=50):
         n -= 1
         diffl += l
     if diffl:
-        print(diffl)
-        assert False
-    else:
-        assert '' == diffl
+        pytest.fail("Files differ: 1st 50 lines of diff:\n"+diffl)
+    assert '' == diffl
 
 
 @pytest.mark.parametrize(
     "parser,param_file",
     get_parser_tests(full_parser_list, '*_parse.*'),
-    indirect=['param_file']
+    indirect=True
 )
 def test_parser_parse(parser, param_file, tmpdir):
     cfn = 'out-c'
@@ -86,7 +88,7 @@ def test_parser_parse(parser, param_file, tmpdir):
 @pytest.mark.parametrize(
     "parser,param_file",
     get_parser_tests(full_parser_list, '*_invalid.*'),
-    indirect=['param_file']
+    indirect=True
 )
 def test_parser_parse_invalid(parser, param_file, tmpdir):
     lgen = parser.lines(param_file)
@@ -101,12 +103,14 @@ def test_parser_parse_invalid(parser, param_file, tmpdir):
 
 @pytest.mark.parametrize(
     "parser,line,out",
-    [(parsers.PRMParser, l, o) for l, o in [
+    [('dealIIPRM', l, o) for l, o in [
         (parsers.PFileLine.commentline('Test'), '# Test\n'),
         (parsers.PFileLine('Control', 'Test', level=1), '  Test\n'),
         (parsers.PFileLine.keyvalueline('Test', 'Out', 1),
          '  set Test = Out\n')
-    ]]
+    ]],
+    indirect=['parser']
+
 )
 def test_parser_typesetting(parser, line, out):
     l = parser.typeset_line(line)
@@ -115,9 +119,10 @@ def test_parser_typesetting(parser, line, out):
 
 @pytest.mark.parametrize(
     "parser,line,error",
-    [(parsers.PRMParser, l, o) for l, o in [
+    [('dealIIPRM', l, o) for l, o in [
         (parsers.PFileLine('Unk', 'Test'), 'Unknown linetype: Unk'),
-    ]]
+    ]],
+    indirect=['parser']
 )
 def test_parser_typesetting_invalid(parser, line, error):
     with pytest.raises(ValueError) as excinfo:
@@ -128,7 +133,7 @@ def test_parser_typesetting_invalid(parser, line, error):
 @pytest.mark.parametrize(
     "parser,param_file",
     get_parser_tests(full_parser_list, '*_rtrip.*'),
-    indirect=['param_file']
+    indirect=True
 )
 def test_parser_rtrip_rw(parser, param_file, tmpdir):
     fn1 = 'out'
@@ -150,7 +155,7 @@ def test_parser_rtrip_rw(parser, param_file, tmpdir):
 @pytest.mark.parametrize(
     "parser,param_file",
     get_parser_tests(full_parser_list, '*_rtrip.*'),
-    indirect=['param_file']
+    indirect=True
 )
 def test_parser_rtrip_rw2(parser, param_file, tmpdir):
     fn1 = 'out'

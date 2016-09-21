@@ -198,7 +198,3 @@ def print_vals(prmfiles, deffile, olist):
             click.echo("Error printing data: {}".format(e))
             raise click.Abort()
         click.echo('-----')
-
-
-if(__name__ == "__main__"):
-    cli_main()

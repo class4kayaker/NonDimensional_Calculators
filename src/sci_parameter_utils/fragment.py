@@ -113,7 +113,10 @@ class TemplateElemSet:
     def compute_strings(self, valdict):
         self.compute_values(valdict)
         for k in valdict:
-            valdict[k] = self.elements[k].do_format(valdict[k])
+            try:
+                valdict[k] = self.elements[k].do_format(valdict[k])
+            except ValueError as e:
+                raise_from(ValueError('Error formatting {}:'.format(k)), e)
 
 
 class TemplateElem(with_metaclass(abc.ABCMeta)):

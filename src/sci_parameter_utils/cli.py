@@ -23,6 +23,16 @@ def get_extn_from_file(fobj):
     return ""
 
 
+def get_values_interactively(vlist, validator):
+    ivals = {}
+    for k in vlist:
+        def validate(v):
+            return validator(k, v)
+        ivals[k] = click.prompt("{}".format(k),
+                                value_proc=validate)
+    return ivals
+
+
 @click.group()
 def cli_main():
     """Set of useful parameter utilities"""
@@ -76,36 +86,35 @@ def template(params, ifile, out, interact, template, list_fns):
 
     for d in iList:
         ivals = {}
-        click.echo('Getting input values')
         try:
-            missing = set()
+            missing = iReq.difference(d.keys())
+
             for k in iReq:
                 if k in d:
                     ivals[k] = eset.validate(k, d[k])
-                elif interact:
-                    def validate(v):
-                            return eset.validate(k, v)
-                    ivals[k] = click.prompt("{}".format(k),
-                                            value_proc=validate)
-                else:
-                    missing.add(k)
+            if interact:
+                click.echo('Getting input values')
+                ivals.update(get_values_interactively(missing, eset.validate))
+
+            missing = iReq.difference(ivals)
             if missing:
-                raise ValueError("No value supplied for {}".format(missing))
+                raise ValueError("No values supplied for {}".format(missing))
+
         except Exception as e:
             click.echo("Error obtaining input values: {}".format(e))
             raise click.Abort()
 
+        eset.compute_strings(ivals)
+        fn = out.format(**ivals)
         try:
-            eset.compute_strings(ivals)
+            pass
 
-            fn = out.format(**ivals)
         except Exception as e:
             click.echo("Error generating filename: {}".format(e))
             raise click.Abort()
 
-        click.echo(fn)
-
         if list_fns:
+            click.echo(fn)
             continue
 
         try:

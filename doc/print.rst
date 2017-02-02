@@ -33,9 +33,7 @@ output. An example of this section is
 
 The elements are specified in :ref:`construct_elems`
 
-Note that any circular dependencies will produce an error, so it is not
-possible to specify elements which are each dependent on the output of the
-other.
+Note that any circular dependencies will produce an error.
 
 Locations
 ^^^^^^^^^

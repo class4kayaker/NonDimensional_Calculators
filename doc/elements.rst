@@ -3,8 +3,8 @@ Elements
 
 .. _construct_elems:
 
-Construction Element
---------------------
+Construction Elements
+---------------------
 
 Construction elements specify what values should be provided and what internal
 processing of those elements will be necessary. All of these accept a ``fmt``
@@ -19,9 +19,8 @@ syntax the basic structure is
 Input Elements
 ^^^^^^^^^^^^^^
 
-Input elements specify the values to be read from the provided files and
-identify the type of value expected. The type of this element is specified in
-the type key.
+Input elements specify required input values and identify the type of value
+expected. The type of this element is specified in the type key.
 
 The permitted types are
 
@@ -39,7 +38,9 @@ Expression elements are used to construct an quantities derived from the input
 values.
 
 expr
-    Numerical expressions permitting standard mathematical operations.
+    Numerical expressions permitting standard mathematical operations. This is
+    not required to depend on any other elements, and may therefore be used to
+    specify constant values as expressions.
 
     The required additional keys are keys are:
 
@@ -53,13 +54,25 @@ fmt
 fname
     Identical to ``fmt`` except with some basic standard replacements for
     filename construction (ie ``.``, ``/`` and spaces are replaced with
-    underscores.
+    underscores.)
 
 .. _location_elems:
 
 Location Elements
 -----------------
 
-loc
 
+Using YAML syntax the basic structure is
 
+| elem_name:
+|     type: type_name
+|     # additional keys
+
+loc:
+    Value is specified as a key-value pair in the parameter file.
+
+    Required keys:
+
+    key
+        Path to correct key-value pair in parameter file using appropriate
+        syntax for interacting with said file.

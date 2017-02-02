@@ -24,15 +24,17 @@ Elements
 The first section identifies elements which will be used to construct the
 output. An example of this section is
 
-| elems:
-|     elem_name1:
-|         type: float
-|     elem_name2:
-|         type: float
-|     elem_name3:
-|         type: expr
-|         expr: "2*elem_name1+elem_name2`
-|         fmt: "{:.4g} units"
+::
+
+    elems:
+        elem_name1:
+            type: float
+        elem_name2:
+            type: float
+        elem_name3:
+            type: expr
+            expr: "2*elem_name1+elem_name2`
+            fmt: "{:.4g} units"
 
 The elements are specified in :ref:`construct_elems`
 
@@ -44,21 +46,25 @@ Locations
 The second section specifies where in the parameter file the input values are
 defined.
 
-| locs:
-|     elem_name1:
-|         type: loc
-|         key: "Path:to:location1"
-|     elem_name2:
-|         type: loc
-|         key: "Path:to:location2"
+::
+
+    locs:
+        elem_name1:
+            type: loc
+            key: "Path:to:location1"
+        elem_name2:
+            type: loc
+            key: "Path:to:location2"
 
 The elements are specified in :ref:`location_elems`
 
 Printing Sections
 ^^^^^^^^^^^^^^^^^
 
-| print:
-|     group1:
-|         [List, of, elements1]
-|     group2:
-|         [List, of, elements2]
+::
+
+    print:
+        group1:
+            [List, of, elements1]
+        group2:
+            [List, of, elements2]

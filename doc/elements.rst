@@ -11,10 +11,12 @@ processing of those elements will be necessary. All of these accept a ``fmt``
 key specifying how the element should be formatted when printed. Using YAML
 syntax the basic structure is
 
-| elem_name:
-|     type: type_name
-|     fmt: fmt_string
-|     # additional keys
+::
+
+    elem_name:
+        type: type_name
+        fmt: fmt_string
+        # additional keys
 
 Input Elements
 ^^^^^^^^^^^^^^
@@ -64,9 +66,11 @@ Location Elements
 
 Using YAML syntax the basic structure is
 
-| elem_name:
-|     type: type_name
-|     # additional keys
+::
+
+    elem_name:
+        type: type_name
+        # additional keys
 
 loc:
     Value is specified as a key-value pair in the parameter file.

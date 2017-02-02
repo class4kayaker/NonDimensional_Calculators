@@ -1,8 +1,18 @@
 Printing Values From Parameter Files
 ====================================
 
+Scientific models often depend on a number of input parameters that due to
+designing for more general use, are frequently not identical to the parameters
+of interest for a particular application. It is therefore desirable to have a
+means of easily and rapidly obtaining derived quantities from such an input
+parameter file. Given that such files are already constructed for the purpose
+of being machine interpreted, this can be expected to be possible. However,
+generality of application will require relatively complex configuration.
+
 Calling the Utility
 -------------------
+
+The
 
 ``sci_parameter_utils print -d CONFIG_FILE PRMFILES...``
 

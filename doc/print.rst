@@ -31,7 +31,7 @@ output. An example of this section is
 |         expr: "2*elem_name1+elem_name2`
 |         fmt: "{:.4g} units"
 
-The elements are specified in :ref:`_construct_elems`
+The elements are specified in :ref:`construct_elems`
 
 Note that any circular dependencies will produce an error, so it is not
 possible to specify elements which are each dependent on the output of the
@@ -51,7 +51,7 @@ defined.
 |         type: loc
 |         key: "Path:to:location2"
 
-The elements are specified in :ref:`_location_elems`
+The elements are specified in :ref:`location_elems`
 
 Printing Sections
 ^^^^^^^^^^^^^^^^^

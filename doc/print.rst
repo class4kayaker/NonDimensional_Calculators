@@ -6,6 +6,9 @@ Calling the Utility
 
 ``sci_parameter_utils print -d CONFIG_FILE PRMFILES...``
 
+
+``sci_parameter_utils print -d CONFIG_FILE -p "section,list" PRMFILES...``
+
 Writing the YAML Configuration Files
 ------------------------------------
 

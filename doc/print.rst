@@ -18,6 +18,9 @@ being more readable.
 Elements
 ^^^^^^^^
 
+The first section identifies elements which will be used to construct the
+output. An example of this section is
+
 | elems:
 |     elem_name1:
 |         type: float
@@ -28,8 +31,17 @@ Elements
 |         expr: "2*elem_name1+elem_name2`
 |         fmt: "{:.4g} units"
 
+The elements are specified in :ref:`_construct_elems`
+
+Note that any circular dependencies will produce an error, so it is not
+possible to specify elements which are each dependent on the output of the
+other.
+
 Locations
 ^^^^^^^^^
+
+The second section specifies where in the parameter file the input values are
+defined.
 
 | locs:
 |     elem_name1:
@@ -38,6 +50,8 @@ Locations
 |     elem_name2:
 |         type: loc
 |         key: "Path:to:location2"
+
+The elements are specified in :ref:`_location_elems`
 
 Printing Sections
 ^^^^^^^^^^^^^^^^^

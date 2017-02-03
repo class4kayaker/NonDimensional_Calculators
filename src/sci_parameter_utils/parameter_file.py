@@ -1,5 +1,5 @@
 import abc
-from six import with_metaclass
+from six import add_metaclass
 
 
 class PFileLine:
@@ -65,9 +65,10 @@ class ParserCollision(RuntimeError):
     pass
 
 
-class PFileParser(with_metaclass(abc.ABCMeta)):
-    _file_types = {}
-    _file_extns = {}
+@add_metaclass(abc.ABCMeta)
+class PFileParser:
+    _file_types = {}  # type: Dict[str, PFileParser]
+    _file_extns = {}  # type: Dict[str, str]
 
     @staticmethod
     def register_type(name, extn):

@@ -1,4 +1,5 @@
 import re
+import six
 
 repl_re = re.compile('{{{([^}]+)}}}')
 
@@ -35,9 +36,9 @@ def do_template(tfile, ofile, parser, values, repl_re=repl_re):
         if l.ltype == 'KeyValue':
             l.value.value = do_replace(l.value.value,
                                        values)
-            ofile.write(parser.typeset_line(l))
+            ofile.write(six.text_type(parser.typeset_line(l)))
         else:
-            ofile.write(parser.typeset_line(l))
+            ofile.write(six.text_type(parser.typeset_line(l)))
 
 
 class MissingValues(Exception):

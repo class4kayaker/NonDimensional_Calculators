@@ -2,10 +2,8 @@ import pytest
 import sci_parameter_utils.general as gen
 import sci_parameter_utils.parameter_file as prm_file
 import sci_parameter_utils.fragment as frags
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO
+from io import StringIO
+import six
 
 
 @pytest.mark.parametrize("istr,values,ostr", [
@@ -71,8 +69,8 @@ def test_fn_template_basic(parser, tmpdir, key, name, value):
     lt = prm_file.PFileLine.keyvalueline(key, '{{{'+name+'}}}')
     lo = prm_file.PFileLine.keyvalueline(key, value)
     smap = {name: '{}'.format(value)}
-    f_t = StringIO(parser.typeset_line(lt))
-    f_o = StringIO(parser.typeset_line(lo))
+    f_t = StringIO(six.text_type(parser.typeset_line(lt)))
+    f_o = StringIO(six.text_type(parser.typeset_line(lo)))
     f_g = StringIO()
     try:
         gen.do_template(f_t, f_g, parser, smap)

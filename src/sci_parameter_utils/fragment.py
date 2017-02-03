@@ -1,10 +1,11 @@
 import sympy
-import sys
 import string
 import abc
-from six import with_metaclass, raise_from
+from six import add_metaclass, raise_from, PY2
 # get consistent access to str.maketrans equivalent across versions
-tr_func = string.maketrans if sys.version_info.major == 2 else str.maketrans
+tr_func = (
+    string.maketrans if PY2  # type: ignore
+    else str.maketrans)  # type: ignore
 
 
 def _register_by_type(etype, base_class, store_dict):
@@ -119,8 +120,9 @@ class TemplateElemSet:
                 raise_from(ValueError('Error formatting {}:'.format(k)), e)
 
 
-class TemplateElem(with_metaclass(abc.ABCMeta)):
-    _elem_types = {}
+@add_metaclass(abc.ABCMeta)
+class TemplateElem:
+    _elem_types = {}  # type: Dict[str, TemplateElem]
 
     @staticmethod
     def register_type(tstr):
@@ -279,8 +281,9 @@ class FNFmtElem(FmtElem):
         return FmtElem.evaluate(self, values).translate(fn_transl)
 
 
-class SearchElem(with_metaclass(abc.ABCMeta)):
-    _elem_types = {}
+@add_metaclass(abc.ABCMeta)
+class SearchElem:
+    _elem_types = {}  # type: Dict[str, SearchElem]
 
     @staticmethod
     def register_type(tstr):

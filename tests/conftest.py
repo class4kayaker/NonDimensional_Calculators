@@ -1,13 +1,13 @@
 import pytest
 import copy
-import sci_parameter_utils.parameter_file as prm_file
 import sci_parameter_utils.parsers as parsers
 
 full_parser_list = parsers.PFileParser._file_types.keys()
 plist = copy.deepcopy(parsers.PFileParser._file_types)
+# type: Dict[str, parsers.PFileParser]
 
 
-class TrivialParser(prm_file.PFileParser):
+class TrivialParser(parsers.PFileParser):
     @staticmethod
     def lines(pfile):
         linenum = 0
@@ -15,22 +15,22 @@ class TrivialParser(prm_file.PFileParser):
             linenum += 1
             l = l.strip()
             if l == '':
-                yield prm_file.PFileLine(None,
-                                         None,
-                                         lnum=linenum)
+                yield parsers.PFileLine.commentline(
+                    None,
+                    lnum=linenum)
             elif l.startswith('#'):
-                yield prm_file.PFileLine("Comment",
-                                         l[1:].strip(),
-                                         lnum=linenum)
+                yield parsers.PFileLine.commentline(
+                    l[1:].strip(),
+                    lnum=linenum)
             else:
                 try:
                     key, value = l.split(' ', 1)
                 except:
                     raise ValueError('Bad key-val on line {}: "{}"'
                                      .format(linenum, l))
-                yield prm_file.PFileLine("KeyValue",
-                                         prm_file.KeyValuePair(key, value),
-                                         lnum=linenum)
+                yield parsers.PFileLine.keyvalueline(
+                    key, value,
+                    lnum=linenum)
 
     @staticmethod
     def typeset_line(line):
@@ -45,7 +45,7 @@ class TrivialParser(prm_file.PFileParser):
             raise ValueError("Unknown linetype: {}".format(str(line)))
 
 
-plist['Trivial'] = TrivialParser
+plist['Trivial'] = TrivialParser  # type: ignore
 
 
 @pytest.fixture(params=full_parser_list)

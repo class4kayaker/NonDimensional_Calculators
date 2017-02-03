@@ -17,7 +17,7 @@ import sci_parameter_utils.parameter_file as prm_file
     "ltype,value",
     [("Comment", "Test {}".format(i)) for i in range(3, 5)] +
     [("Control", "Test {}".format(i)) for i in range(2, 4)] +
-    [("KeyValue", prm_file.KeyValuePair("K", "Test {}".format(i)))
+    [("KeyValue", str(prm_file.KeyValuePair("K", "Test {}".format(i))))
      for i in range(4, 6)]
 )
 def test_create_fline(ltype, lnum, level, value):

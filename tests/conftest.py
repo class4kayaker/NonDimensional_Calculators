@@ -44,6 +44,7 @@ class TrivialParser(prm_file.PFileParser):
         else:
             raise ValueError("Unknown linetype: {}".format(str(line)))
 
+
 plist['Trivial'] = TrivialParser
 
 

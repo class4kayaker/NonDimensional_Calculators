@@ -2,6 +2,10 @@ import sympy
 import string
 import abc
 from six import add_metaclass, raise_from, PY2
+try:
+    import typing  # noqa: F401
+except:
+    pass
 # get consistent access to str.maketrans equivalent across versions
 tr_func = (
     string.maketrans if PY2  # type: ignore
@@ -122,7 +126,7 @@ class TemplateElemSet:
 
 @add_metaclass(abc.ABCMeta)
 class TemplateElem:
-    _elem_types = {}  # type: Dict[str, TemplateElem]
+    _elem_types = {}  # type: Dict[str, typing.Type[TemplateElem]]
 
     @staticmethod
     def register_type(tstr):
@@ -283,7 +287,7 @@ class FNFmtElem(FmtElem):
 
 @add_metaclass(abc.ABCMeta)
 class SearchElem:
-    _elem_types = {}  # type: Dict[str, SearchElem]
+    _elem_types = {}  # type: Dict[str, typing.Type[SearchElem]]
 
     @staticmethod
     def register_type(tstr):

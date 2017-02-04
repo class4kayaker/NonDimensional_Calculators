@@ -4,7 +4,6 @@ import sci_parameter_utils.parsers as parsers
 
 full_parser_list = parsers.PFileParser._file_types.keys()
 plist = copy.deepcopy(parsers.PFileParser._file_types)
-# type: Dict[str, parsers.PFileParser]
 
 
 class TrivialParser(parsers.PFileParser):
@@ -45,7 +44,7 @@ class TrivialParser(parsers.PFileParser):
             raise ValueError("Unknown linetype: {}".format(str(line)))
 
 
-plist['Trivial'] = TrivialParser  # type: ignore
+plist['Trivial'] = TrivialParser
 
 
 @pytest.fixture(params=full_parser_list)

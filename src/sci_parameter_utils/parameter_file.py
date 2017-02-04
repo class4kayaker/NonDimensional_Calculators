@@ -1,5 +1,9 @@
 import abc
 from six import add_metaclass
+try:
+    import typing  # noqa: F401
+except:
+    pass
 
 
 class PFileLine:
@@ -67,7 +71,7 @@ class ParserCollision(RuntimeError):
 
 @add_metaclass(abc.ABCMeta)
 class PFileParser:
-    _file_types = {}  # type: Dict[str, PFileParser]
+    _file_types = {}  # type: Dict[str, typing.Type[PFileParser]]
     _file_extns = {}  # type: Dict[str, str]
 
     @staticmethod

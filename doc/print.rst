@@ -12,15 +12,20 @@ generality of application will require relatively complex configuration.
 Calling the Utility
 -------------------
 
-The
+The utility is used with a standard command line call of the form:
 
 ``sci_parameter_utils print -d CONFIG_FILE PRMFILES...``
 
+This results in the computation of the values specified in ``CONFIG_FILE`` and
+writing the specified values to STDOUT in a reasonably readable form.
+
+In the case where only a subset of the output sections are desired, a list of
+sections to be printed may be specified using the form:
 
 ``sci_parameter_utils print -d CONFIG_FILE -p "section,list" PRMFILES...``
 
-Writing the YAML Configuration Files
-------------------------------------
+Writing the YAML/JSON Configuration Files
+-----------------------------------------
 
 In order to be able to identify where the relevant parameter file entries are
 and construct the necessary derived quantitys, a configuration file is

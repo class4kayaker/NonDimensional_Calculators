@@ -1,4 +1,15 @@
 Generating Parameter Files From Templates
 =========================================
 
-Text
+Calling the Utility
+-------------------
+
+
+
+Creating a Template
+-------------------
+
+
+
+Writing the YAML/JSON Configuration File
+----------------------------------------

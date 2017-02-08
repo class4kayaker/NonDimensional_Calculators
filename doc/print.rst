@@ -12,6 +12,8 @@ generality of application will require relatively complex configuration.
 Calling the Utility
 -------------------
 
+.. program-output:: sci_parameter_utils print --help
+
 The utility is used with a standard command line call of the form:
 
 ``sci_parameter_utils print -d CONFIG_FILE PRMFILES...``

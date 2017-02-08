@@ -9,11 +9,11 @@ babel==2.3.4              # via sphinx
 click==6.6
 docutils==0.13.1          # via sphinx
 imagesize==0.7.1          # via sphinx
-Jinja2==2.9.4             # via sphinx
-MarkupSafe==0.23          # via jinja2
+jinja2==2.9.4             # via sphinx
+markupsafe==0.23          # via jinja2
 mpmath==0.19              # via sympy
 py==1.4.31                # via pytest
-Pygments==2.2.0           # via sphinx
+pygments==2.2.0           # via sphinx
 pytest==3.0.2
 pytz==2016.10             # via babel
 pyyaml==3.12
@@ -21,4 +21,5 @@ requests==2.13.0          # via sphinx
 six==1.10.0
 snowballstemmer==1.2.1    # via sphinx
 sphinx==1.5.2
+sphinxcontrib-programoutput==0.8
 sympy==1.0

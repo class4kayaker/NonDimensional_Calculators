@@ -13,6 +13,8 @@ such files is quite useful.
 Calling the Utility
 -------------------
 
+.. program-output:: sci_parameter_utils template --help
+
 The utility is called as a standard command line utility.
 
 The parameters specified by the

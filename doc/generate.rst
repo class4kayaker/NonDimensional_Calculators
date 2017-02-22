@@ -15,9 +15,7 @@ Calling the Utility
 
 .. program-output:: sci_parameter_utils template --help
 
-The utility is called as a standard command line utility.
-
-The parameters specified by the
+More detailed descriptions of the input parameters are given below.
 
 params
     Parameter configuration file as described in :ref:`generator_config_file`.
@@ -28,18 +26,37 @@ params
 ifile
     File used to specify lists of values for input parmeters as described in
     :ref:`generator_input_file`.
-    
-    If a value is required but not specified and the interactive option is
-    enabled, the value will be requested from the user, otherwise the utility
-    will exit with an error.
+
+    This approach is useful when generating large sets of parameter files
+    where all required input parameters are known.
 
 TEMPLATE
-    Template parameter file used to generate the
+    Template parameter file as described in :ref:`generator_template_file`.
 
 .. _generator_input_file:
 
 Creating an Input Value File
 ----------------------------
+
+An input value file consists of a yaml or json file which has a list of key
+value pairs. The keys are the input values specified in the :ref:`config file
+<generator_config_file>`.
+
+An example yaml file is
+
+::
+    -   
+        input_int: 16
+        input_float: 2.5
+        input_string: Example
+    -   
+        input_int: 8
+        input_float: 4.0
+        input_string: Example2
+
+If a value is required but not specified and the interactive option is
+enabled, the value will be requested from the user, otherwise the utility
+will exit with an error.
 
 .. _generator_template_file:
 

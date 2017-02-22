@@ -13,6 +13,10 @@ import sci_parameter_utils.parameter_file as prm_file
     3,
     2
 ])
+@pytest.mark.parametrize("comment", [
+    "Comment 1",
+    "Comment 2"
+])
 @pytest.mark.parametrize(
     "ltype,value",
     [("Comment", "Test {}".format(i)) for i in range(3, 5)] +
@@ -20,18 +24,21 @@ import sci_parameter_utils.parameter_file as prm_file
     [("KeyValue", str(prm_file.KeyValuePair("K", "Test {}".format(i))))
      for i in range(4, 6)]
 )
-def test_create_fline(ltype, lnum, level, value):
-    a = prm_file.PFileLine(ltype, value, level, lnum)
+def test_create_fline(ltype, lnum, level, value, comment):
+    a = prm_file.PFileLine(ltype, value, comment=comment,
+                           level=level, lnum=lnum)
 
     assert a.ltype == ltype
     assert a.value == value
     assert a.level == level
     assert a.lnum == lnum
-    assert str(a) == ("<{} [Line {}]({}): {}>"
+    assert a.comment == comment
+    assert str(a) == ("<{} [Line {}]({}): {} # {}>"
                       .format(a.ltype,
                               a.lnum,
                               a.level,
-                              str(a.value)))
+                              str(a.value),
+                              a.comment))
 
 
 @pytest.mark.parametrize("lnum", [
@@ -49,9 +56,9 @@ def test_create_fline_c(value, lnum):
                                        lnum=lnum)
 
     assert a.ltype == "Comment"
-    assert a.value == value
+    assert a.comment == value
     assert a.lnum == lnum
-    assert str(a) == ("<{} [Line {}]({}): {}>"
+    assert str(a) == ("<{} [Line {}]({}): None # {}>"
                       .format(a.ltype,
                               lnum,
                               0,
@@ -88,7 +95,7 @@ def test_create_fline_kv(key, value, level, lnum):
     assert a.value.value == value
     assert a.level == level
     assert a.lnum == lnum
-    assert str(a) == ("<{} [Line {}]({}): <{} = {}>>"
+    assert str(a) == ("<{} [Line {}]({}): <{} = {}> # >"
                       .format(a.ltype,
                               lnum,
                               level,

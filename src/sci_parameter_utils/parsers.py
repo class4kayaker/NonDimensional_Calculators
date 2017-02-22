@@ -95,7 +95,7 @@ class PRMParser(PFileParser):
         if line.ltype is None:
             return '\n'
         elif line.ltype == "Comment":
-            return '# {}\n'.format(line.value)
+            return '# {}\n'.format(line.comment)
         elif line.ltype == "Control":
             return ('{ind:<{ind_s}}{line}\n'
                     .format(ind='',

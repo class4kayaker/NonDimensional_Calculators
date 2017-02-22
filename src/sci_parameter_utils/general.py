@@ -33,7 +33,7 @@ def get_fn_suggest(tfile, parser, repl_re=repl_re):
     lgen = parser.lines(tfile)
     for l in lgen:
         if l.ltype == "Comment":
-            match = sugg_re.search(l.value)
+            match = sugg_re.search(l.comment)
             if match:
                 fn_suggest = match.group(1)
                 break

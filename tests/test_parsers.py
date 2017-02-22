@@ -73,8 +73,8 @@ def test_parser_parse(parser, param_file, tmpdir):
                 assert hasattr(l.value, 'value')
 
             if l.ltype == "Comment":
-                if l.value.startswith('L: '):
-                    cf.write(cfmt.format(l.value))
+                if l.comment.startswith('L: '):
+                    cf.write(cfmt.format(l.comment))
                 else:
                     pf.write(pfmt.format(str(l)))
             else:
@@ -94,7 +94,7 @@ def test_parser_parse_invalid(parser, param_file, tmpdir):
     lgen = parser.lines(param_file)
     fline = next(lgen)
     assert fline.ltype == "Comment"
-    error = fline.value
+    error = fline.comment
     with pytest.raises(ValueError) as excinfo:
         for l in lgen:
             pass

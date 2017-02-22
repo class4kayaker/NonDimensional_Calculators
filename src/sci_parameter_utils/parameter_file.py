@@ -8,34 +8,36 @@ except:
 
 
 class PFileLine:
-    __slots__ = ['lnum', 'ltype', 'level', 'value']
+    __slots__ = ['lnum', 'ltype', 'level', 'value', 'comment']
 
-    def __init__(self, ltype, value, level=0, lnum=0):
-        # type: (str, Any, int, int) -> None
+    def __init__(self, ltype, value, comment="", level=0, lnum=0):
+        # type: (str, Any, str, int, int) -> None
         assert level >= 0
         assert lnum >= 0
         self.lnum = lnum
         self.ltype = ltype
         self.level = level
         self.value = value
+        self.comment = comment
 
     def __repr__(self):  # pragma nocoverage
         # type: () -> str
         return (("<{0.__class__!r}: "
-                 "{0.ltype} [Line {0.lnum}]({0.level}): "
-                 "{0.value!r}>")
+                 "{0.ltype!r} [Line {0.lnum}]({0.level}): "
+                 "{0.value!r} # {0.comment!r}>")
                 .format(self))
 
     def __str__(self):
         # type: () -> str
-        return (("<{0.ltype} [Line {0.lnum}]({0.level}): "
-                 "{0.value!s}>")
+        return (("<{0.ltype!s} [Line {0.lnum}]({0.level}): "
+                 "{0.value!s} # {0.comment!s}>")
                 .format(self))
 
     @staticmethod
     def commentline(comment, lnum=0, level=0):
         # type: (str, int, int) -> PFileLine
-        return PFileLine("Comment", comment, level=level, lnum=lnum)
+        return PFileLine("Comment", None, comment=comment,
+                         level=level, lnum=lnum)
 
     @staticmethod
     def keyvalueline(key, value, level=0, lnum=0):
@@ -56,11 +58,11 @@ class KeyValuePair:
 
     def __repr__(self):  # pragma nocoverage
         # type: () -> str
-        return "<{0.__class__!r}: {0.key} = {0.value}>".format(self)
+        return "<{0.__class__!r}: {0.key!r} = {0.value!r}>".format(self)
 
     def __str__(self):
         # type: () -> str
-        return "<{0.key} = {0.value}>".format(self)
+        return "<{0.key!s} = {0.value!s}>".format(self)
 
 
 class ParserNotFound(Exception):

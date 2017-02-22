@@ -1,9 +1,9 @@
 import re
 import six
+from sci_parameter_utils.parameter_file import PFileParser, KeyValuePair  # noqa: F401, E501
 try:
     import typing  # noqa: F401
-    from typing import Any, Pattern  # noqa: F401
-    from sci_parameter_utils.parameter_file import PFileParser  # noqa: F401
+    from typing import Any, Pattern, Type  # noqa: F401
     from sci_parameter_utils.fragment import SearchElem  # noqa: F401
 except:
     pass
@@ -26,8 +26,8 @@ def do_replace(istr, values, to_fmt=False, repl_re=repl_re):
 
 
 def get_fn_suggest(tfile, parser, repl_re=repl_re):
-    # type: (Any, PFileParser, Pattern) -> str
-    # type: (typing.io.IO, PFileParser, Pattern) -> str
+    # type: (Any, Type[PFileParser], Pattern) -> str
+    # type: (typing.io.IO, Type[PFileParser], Pattern) -> str
     tfile.seek(0, 0)
     sugg_re = re.compile('FN:\s+(\S+)')
     lgen = parser.lines(tfile)
@@ -40,14 +40,22 @@ def get_fn_suggest(tfile, parser, repl_re=repl_re):
     return do_replace(fn_suggest, None, to_fmt=True)
 
 
+class ParserError(Exception):
+    pass
+
+
 def do_template(tfile, ofile, parser, values, repl_re=repl_re):
-    # type: (Any, Any, PFileParser, Dict[str, str], Pattern) -> None # noqa
+    # type: (Any, Any, Type[PFileParser], Dict[str, str], Pattern) -> None # noqa
     # type: (typing.io.IO, typing.io.IO, PFileParser, Dict[str, str], Pattern) -> None # noqa
     tfile.seek(0, 0)
     for l in parser.lines(tfile):
         if l.ltype == 'KeyValue':
-            l.value.value = do_replace(l.value.value,
-                                       values)
+            if isinstance(l.value, KeyValuePair):
+                l.value.value = do_replace(l.value.value,
+                                           values)
+            else:
+                raise ParserError(
+                    "Key-value line does not have KeyValuePair value")
             ofile.write(six.text_type(parser.typeset_line(l)))
         else:
             ofile.write(six.text_type(parser.typeset_line(l)))
@@ -58,8 +66,8 @@ class MissingValues(Exception):
 
 
 def do_search(searchlist, ifile, parser, findall=True):
-    # type: (Dict[str, SearchElem], Any, PFileParser, bool) -> Dict[str, str] # noqa
-    # type: (Dict[str, SearchElem], typing.io.IO, PFileParser, bool) -> Dict[str, str] # noqa
+    # type: (Dict[str, SearchElem], Any, Type[PFileParser], bool) -> Dict[str, str] # noqa
+    # type: (Dict[str, SearchElem], typing.io.IO, Type[PFileParser], bool) -> Dict[str, str] # noqa
     valdict = {}  # type: Dict[str, str]
     locdict = {}  # type: Dict[str, List[str]]
     for k in searchlist:

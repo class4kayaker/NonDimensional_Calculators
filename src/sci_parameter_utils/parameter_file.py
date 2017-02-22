@@ -2,6 +2,7 @@ import abc
 from six import add_metaclass
 try:
     import typing  # noqa: F401
+    from typing import Any, Callable, Iterable, Type  # noqa: F401
 except:
     pass
 
@@ -10,6 +11,7 @@ class PFileLine:
     __slots__ = ['lnum', 'ltype', 'level', 'value']
 
     def __init__(self, ltype, value, level=0, lnum=0):
+        # type: (str, Any, int, int) -> None
         assert level >= 0
         assert lnum >= 0
         self.lnum = lnum
@@ -18,6 +20,7 @@ class PFileLine:
         self.value = value
 
     def __repr__(self):  # pragma nocoverage
+        # type: () -> str
         return ("<{}: {} [Line {}]({}): {}>"
                 .format(repr(self.__class__),
                         repr(self.ltype),
@@ -26,6 +29,7 @@ class PFileLine:
                         repr(self.value)))
 
     def __str__(self):
+        # type: () -> str
         return ("<{} [Line {}]({}): {}>"
                 .format(self.ltype,
                         self.lnum,
@@ -33,11 +37,13 @@ class PFileLine:
                         self.value))
 
     @staticmethod
-    def commentline(comment, lnum=0):
-        return PFileLine("Comment", comment, lnum=lnum)
+    def commentline(comment, lnum=0, level=0):
+        # type: (str, int, int) -> PFileLine
+        return PFileLine("Comment", comment, level=level, lnum=lnum)
 
     @staticmethod
     def keyvalueline(key, value, level=0, lnum=0):
+        # type: (str, str, int, int) -> PFileLine
         return PFileLine("KeyValue",
                          KeyValuePair(key, value),
                          level=level,
@@ -48,24 +54,27 @@ class KeyValuePair:
     __slots__ = ['key', 'value']
 
     def __init__(self, key, value):
+        # type: (str, str) -> None
         self.key = key
         self.value = value
 
     def __repr__(self):  # pragma nocoverage
+        # type: () -> str
         return "<{}: {} = {}>".format(self.__class__,
                                       repr(self.key),
                                       repr(self.value))
 
     def __str__(self):
+        # type: () -> str
         return "<{} = {}>".format(self.key,
                                   self.value)
 
 
-class ParserNotFound(RuntimeError):
+class ParserNotFound(Exception):
     pass
 
 
-class ParserCollision(RuntimeError):
+class ParserCollision(Exception):
     pass
 
 
@@ -76,7 +85,9 @@ class PFileParser:
 
     @staticmethod
     def register_type(name, extn):
+        # type: (str, str) -> Callable[[Type[PFileParser]], Type[PFileParser]]
         def internal_dec(cls):
+            # type: (Type[PFileParser]) -> Type[PFileParser]
             if name in PFileParser._file_types:
                 raise ParserCollision(
                     "Name {} is already registered".format(name))
@@ -90,6 +101,7 @@ class PFileParser:
 
     @staticmethod
     def parser_by_name(name):
+        # type: (str) -> Type[PFileParser]
         try:
             cst = PFileParser._file_types[name]
         except KeyError:
@@ -98,6 +110,7 @@ class PFileParser:
 
     @staticmethod
     def parser_by_extn(extn):
+        # type: (str) -> Type[PFileParser]
         try:
             name = PFileParser._file_extns[extn]
         except KeyError:
@@ -108,8 +121,10 @@ class PFileParser:
 
     @staticmethod
     def lines(fobj):
+        # type: (Any) -> Iterable[PFileLine]
         raise NotImplementedError()  # pragma nocoverage
 
     @staticmethod
     def typeset_line(line):
+        # type: (PFileLine) -> str
         raise NotImplementedError()  # pragma nocoverage

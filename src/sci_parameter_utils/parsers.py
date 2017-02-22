@@ -10,6 +10,7 @@ class PRMParser(PFileParser):
     @staticmethod
     def lines(fobj):
         def parse_command(cline, lnum, position):
+            # type: (str, int, List[str]) -> PFileLine
             if not parse_line:
                 return PFileLine(None, None, lnum=lnum)
 

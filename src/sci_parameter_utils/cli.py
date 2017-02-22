@@ -4,6 +4,11 @@ import sci_parameter_utils.fragment
 import sci_parameter_utils.parsers
 import sci_parameter_utils.general
 import yaml
+try:
+    import typing  # noqa: F401
+    from typing import Any, Callable, Iterable, Type  # noqa: F401
+except:
+    pass
 
 
 def get_dict_from_file(fobj):
@@ -24,6 +29,7 @@ def get_extn_from_file(fobj):
 
 
 def get_values_interactively(vlist, validator):
+    # type: (Iterable[str], Callable[[str, str], Any]) -> Dict[str, Any]
     ivals = {}
     for k in vlist:
         def validate(v):
@@ -51,7 +57,9 @@ def cli_main():
 @click.option('list_fns', '--list/--no-list', '-l', default=False,
               help="List names of output files only")
 @click.argument('template', type=click.File('r'))
-def template(params, ifile, out, interact, template, list_fns):
+def template(params, ifile, out, template, interact, list_fns):
+    # type: (Any, Any, Any, Any, bool, bool) -> None
+    # type: (typing.io.IO, typing.io.IO, typing.io.IO, typing.io.IO, bool, bool) -> None # noqa
     """Generate parameter files from TEMPLATE"""
     try:
         eset = sci_parameter_utils.fragment.TemplateElemSet(
@@ -136,6 +144,7 @@ def template(params, ifile, out, interact, template, list_fns):
               help="List of sections to print")
 @click.argument('prmfiles', type=click.File('r'), nargs=-1)
 def print_vals(prmfiles, deffile, olist):
+    # type: (Any, Any, str) -> None
     """Prints values from PRMFILES"""
     try:
         idict = get_dict_from_file(deffile)
@@ -167,9 +176,9 @@ def print_vals(prmfiles, deffile, olist):
         prlist = idict['print']
 
         if olist:
-            olist = set(s.strip() for s in olist.split(','))
+            pr_sections = set(s.strip() for s in olist.split(','))
         else:
-            olist = set(prlist.keys())
+            pr_sections = set(prlist.keys())
     except Exception as e:
         click.echo("Error collecting printing sections: {}".format(e))
         raise click.Abort()
@@ -199,7 +208,7 @@ def print_vals(prmfiles, deffile, olist):
 
         try:
             for k in prlist:
-                if k in olist:
+                if k in pr_sections:
                     click.echo('Section {}'.format(k))
                     for v in prlist[k]:
                         click.echo('\t{} = {}'.format(v, ivals[v]))

@@ -21,20 +21,16 @@ class PFileLine:
 
     def __repr__(self):  # pragma nocoverage
         # type: () -> str
-        return ("<{}: {} [Line {}]({}): {}>"
-                .format(repr(self.__class__),
-                        repr(self.ltype),
-                        repr(self.lnum),
-                        repr(self.level),
-                        repr(self.value)))
+        return (("<{0.__class__!r}: "
+                 "{0.ltype} [Line {0.lnum}]({0.level}): "
+                 "{0.value!r}>")
+                .format(self))
 
     def __str__(self):
         # type: () -> str
-        return ("<{} [Line {}]({}): {}>"
-                .format(self.ltype,
-                        self.lnum,
-                        self.level,
-                        self.value))
+        return (("<{0.ltype} [Line {0.lnum}]({0.level}): "
+                 "{0.value!s}>")
+                .format(self))
 
     @staticmethod
     def commentline(comment, lnum=0, level=0):
@@ -60,14 +56,11 @@ class KeyValuePair:
 
     def __repr__(self):  # pragma nocoverage
         # type: () -> str
-        return "<{}: {} = {}>".format(self.__class__,
-                                      repr(self.key),
-                                      repr(self.value))
+        return "<{0.__class__!r}: {0.key} = {0.value}>".format(self)
 
     def __str__(self):
         # type: () -> str
-        return "<{} = {}>".format(self.key,
-                                  self.value)
+        return "<{0.key} = {0.value}>".format(self)
 
 
 class ParserNotFound(Exception):

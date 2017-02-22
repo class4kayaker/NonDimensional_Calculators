@@ -78,8 +78,7 @@ def test_register_TemplateElem(tstrs, cls, mocker, monkeypatch):
 @pytest.mark.parametrize("tstr,name,args,error", [
     ('invalid', 'test', {}, "Unknown type 'invalid'"),
     ('int', 'test', {'bad_arg': 1}, "Error constructing element "
-     "'test' of type 'int': __init__() got an unexpected keyword "
-     "argument 'bad_arg'"),
+     "'test' of type 'int': Unknown arguments ['bad_arg']"),
 ])
 def test_invalid_types(tstr, name, args, error):
     with pytest.raises(frag.InvalidElementError) as excinfo:

@@ -4,6 +4,8 @@ import abc
 from six import add_metaclass, raise_from, PY2
 try:
     import typing  # noqa: F401
+    from typing import Any, Callable, Set, Type  # noqa: F401
+    E = typing.TypeVar('E', bound='ElemBase')
 except:
     pass
 # get consistent access to str.maketrans equivalent across versions
@@ -13,27 +15,26 @@ tr_func = (
 
 
 def _register_by_type(etype, base_class, store_dict):
+    # type: (str, Type[E], Dict[str, Type[E]]) -> Callable[[Type[E]], Type[E]]
     def internal_dec(cls):
-        assert issubclass(cls, base_class)
+        if not issubclass(cls, base_class):
+            raise InvalidElementTypeError("Not subclass of element type")
         store_dict[etype] = cls
+        cls._etype = etype
         return cls
     return internal_dec
 
 
 def _return_elem_by_type(store_dict, tstr, name, args):
-    try:
-        cst = store_dict[tstr]
-    except KeyError:
+    # type: (Dict[str, Type[E]], str, str, Dict[str, str]) -> E
+    if tstr not in store_dict:
         raise InvalidElementError("Unknown type '{}'".format(tstr))
-    try:
-        return cst(name, **args)
-    except TypeError as e:
-        raise InvalidElementError(
-            "Error constructing element '{}' of type '{}': {}"
-            .format(name, tstr, e))
+    cst = store_dict[tstr]
+    return cst(name, **args)
 
 
 def elems_from_dict(idict, baseElem):
+    # type: (Dict[str, Dict[str, str]], Type[E]) -> Dict[str, E]
     elems = {}
     for k in idict:
         e = idict[k]
@@ -46,7 +47,11 @@ def elems_from_dict(idict, baseElem):
     return elems
 
 
-class InvalidElementError(RuntimeError):
+class InvalidElementTypeError(Exception):
+    pass
+
+
+class InvalidElementError(Exception):
     pass
 
 
@@ -54,24 +59,27 @@ class InvalidInputError(ValueError):
     pass
 
 
-class DependencyError(RuntimeError):
+class DependencyError(Exception):
     pass
 
 
 class TemplateElemSet:
     def __init__(self, elems):
+        # type: (Dict[str, TemplateElem]) -> None
         self.elements = elems
         self._compute_order()
         self._collect_inputs()
 
     def _compute_order(self):
-        searching = set()
-        order = []
+        # type: () -> None
+        searching = set()  # type: Set[str]
+        order = []  # type: List[str]
         for k in self.elements:
             self._search_dep(k, searching, order)
         self.order = order
 
     def _search_dep(self, k, searching, order):
+        # type: (str, Set[str], List[str]) -> None
         if k not in self.elements:
             raise DependencyError("Unknown dependency {}".format(k))
         if k in searching:
@@ -87,19 +95,26 @@ class TemplateElemSet:
         return
 
     def _collect_inputs(self):
-        self.inputs = set()
+        # type: () -> None
+        self.inputs = set()  # type: Set[str]
         for k in self.elements:
             e = self.elements[k]
             if isinstance(e, InputElem):
                 self.inputs.add(k)
 
     def get_inputs(self):
+        # type: () -> Set[str]
         return self.inputs
 
     def validate(self, k, v):
+        # type: (str, str) -> Any
         if k in self.inputs:
             try:
-                return self.elements[k].validate(v)
+                elem = self.elements[k]
+                if isinstance(elem, InputElem):
+                    return elem.validate(v)
+                else:
+                    raise InvalidInputError("Invalid input name {}".format(k))
             except ValueError as e:
                 raise_from(
                     InvalidInputError(
@@ -110,12 +125,14 @@ class TemplateElemSet:
                 "Invalid input name {}".format(k))
 
     def compute_values(self, valdict):
+        # type: (Dict[str, Any]) -> None
         for k in self.order:
             if k in valdict:
                 continue
             valdict[k] = self.elements[k].evaluate(valdict)
 
     def compute_strings(self, valdict):
+        # type: (Dict[str, Any]) -> None
         self.compute_values(valdict)
         for k in valdict:
             try:
@@ -125,17 +142,46 @@ class TemplateElemSet:
 
 
 @add_metaclass(abc.ABCMeta)
-class TemplateElem:
-    _elem_types = {}  # type: Dict[str, typing.Type[TemplateElem]]
+class ElemBase:
+    def __init__(self, name, **idict):
+        self.name = name
+        if idict:
+            raise InvalidElementError(
+                ("Error constructing element '{}' of type '{}': "
+                 "Unknown arguments {}")
+                .format(name, self._etype, list(idict.keys())))
 
     @staticmethod
     def register_type(tstr):
+        raise InvalidElementTypeError("Bad base element")
+
+    @staticmethod
+    def elem_by_type(tstr, name, args):
+        raise InvalidElementError("Bad base element")
+
+
+class TemplateElem(ElemBase):
+    _elem_types = {}  # type: Dict[str, typing.Type[TemplateElem]]
+
+    def __init__(self, name, fmt="{}", **idict):
+        self.name = name
+        self.fmt = fmt
+        if idict:
+            raise InvalidElementError(
+                ("Error constructing element '{}' of type '{}': "
+                 "Unknown arguments {}")
+                .format(name, self._etype, list(idict.keys())))
+
+    @staticmethod
+    def register_type(tstr):
+        # type: (str) -> Callable[[typing.Type[TemplateElem]], typing.Type[TemplateElem]] # noqa
         return _register_by_type(tstr,
                                  TemplateElem,
                                  TemplateElem._elem_types)
 
     @staticmethod
     def elem_by_type(tstr, name, args):
+        # type: (str, str, Dict[str, str]) -> TemplateElem
         return _return_elem_by_type(TemplateElem._elem_types,
                                     tstr,
                                     name,
@@ -143,31 +189,31 @@ class TemplateElem:
 
     @abc.abstractmethod
     def get_name(self):
+        # type: () -> str
         """Method returning name of template element"""
         return self.name
 
     @abc.abstractmethod
     def get_dependencies(self):
+        # type: () -> Set[str]
         """Method returning dependencies of template element, dependency on
         self implies expectation of external definition"""
         return set()
 
     @abc.abstractmethod
     def evaluate(self, values):
+        # type: (Dict[str, Any]) -> Any
         """Method returning value of the element suitable for use in final
         file"""
         pass  # pragma nocover
 
     def do_format(self, value):
+        # type: (Any) -> str
         """Method returning formatted string when given result of evaluate"""
         return str(value)
 
 
 class InputElem(TemplateElem):
-    def __init__(self, name, fmt="{}"):
-        self.name = name
-        self.fmt = fmt
-
     def get_name(self):
         return TemplateElem.get_name(self)
 
@@ -215,13 +261,18 @@ class ExprElem(TemplateElem):
 
 @TemplateElem.register_type('expr')
 class NExprElem(ExprElem):
-    def __init__(self, name, expr, fmt='{}'):
+    def __init__(self, name, expr, fmt='{}', **idict):
         self.name = name
         self.expr = sympy.S(expr)
         self.fmt = fmt
         if self.name in self.get_dependencies():
             raise DependencyError(
                 "Element '{}' cannot be dependent on itself".format(self.name))
+        if idict:
+            raise InvalidElementError(
+                ("Error constructing element '{}' of type '{}': "
+                 "Unknown arguments {}")
+                .format(name, self._etype, list(idict.keys())))
 
     def get_name(self):
         return self.name
@@ -252,12 +303,17 @@ class NExprElem(ExprElem):
 
 @TemplateElem.register_type('fmt')
 class FmtElem(ExprElem):
-    def __init__(self, name, expr):
+    def __init__(self, name, expr, **idict):
         self.name = name
         self.expr = expr
         if self.name in self.get_dependencies():
             raise DependencyError(
                 "Element '{}' cannot be dependent on itself".format(self.name))
+        if idict:
+            raise InvalidElementError(
+                ("Error constructing element '{}' of type '{}': "
+                 "Unknown arguments {}")
+                .format(name, self._etype, list(idict.keys())))
 
     def get_name(self):
         return self.name
@@ -285,16 +341,26 @@ class FNFmtElem(FmtElem):
         return FmtElem.evaluate(self, values).translate(fn_transl)
 
 
-@add_metaclass(abc.ABCMeta)
-class SearchElem:
+class SearchElem(ElemBase):
     _elem_types = {}  # type: Dict[str, typing.Type[SearchElem]]
+
+    def __init__(self, name, key, **idict):
+        self.name = name
+        self.key = key
+        if idict:
+            raise InvalidElementError(
+                ("Error constructing element '{}' of type '{}': "
+                 "Unknown arguments {}")
+                .format(name, self._etype, list(idict.keys())))
 
     @staticmethod
     def register_type(tstr):
+        # type: (str) -> Callable[[typing.Type[SearchElem]], typing.Type[SearchElem]] # noqa
         return _register_by_type(tstr, SearchElem, SearchElem._elem_types)
 
     @staticmethod
     def elem_by_type(tstr, name, args):
+        # type: (str, str, Dict[str, str]) -> SearchElem
         return _return_elem_by_type(SearchElem._elem_types,
                                     tstr,
                                     name,
@@ -306,10 +372,12 @@ class SearchElem:
 
     @abc.abstractmethod
     def get_key(self):
+        # type: () -> str
         return self.key
 
     @abc.abstractmethod
     def get_value(self, value):
+        # type (Any) -> Any
         return value
 
 

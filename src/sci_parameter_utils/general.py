@@ -1,10 +1,18 @@
 import re
 import six
+try:
+    import typing  # noqa: F401
+    from typing import Any, Pattern  # noqa: F401
+    from sci_parameter_utils.parameter_file import PFileParser  # noqa: F401
+    from sci_parameter_utils.fragment import SearchElem  # noqa: F401
+except:
+    pass
 
 repl_re = re.compile('{{{([^}]+)}}}')
 
 
 def do_replace(istr, values, to_fmt=False, repl_re=repl_re):
+    # type: (str, Dict[str, str], bool, Pattern) -> str
     def repl_fn(match):
         k = match.group(1)
         if to_fmt:
@@ -18,6 +26,8 @@ def do_replace(istr, values, to_fmt=False, repl_re=repl_re):
 
 
 def get_fn_suggest(tfile, parser, repl_re=repl_re):
+    # type: (Any, PFileParser, Pattern) -> str
+    # type: (typing.io.IO, PFileParser, Pattern) -> str
     tfile.seek(0, 0)
     sugg_re = re.compile('FN:\s+(\S+)')
     lgen = parser.lines(tfile)
@@ -31,6 +41,8 @@ def get_fn_suggest(tfile, parser, repl_re=repl_re):
 
 
 def do_template(tfile, ofile, parser, values, repl_re=repl_re):
+    # type: (Any, Any, PFileParser, Dict[str, str], Pattern) -> None # noqa
+    # type: (typing.io.IO, typing.io.IO, PFileParser, Dict[str, str], Pattern) -> None # noqa
     tfile.seek(0, 0)
     for l in parser.lines(tfile):
         if l.ltype == 'KeyValue':
@@ -46,8 +58,10 @@ class MissingValues(Exception):
 
 
 def do_search(searchlist, ifile, parser, findall=True):
-    valdict = {}
-    locdict = {}
+    # type: (Dict[str, SearchElem], Any, PFileParser, bool) -> Dict[str, str] # noqa
+    # type: (Dict[str, SearchElem], typing.io.IO, PFileParser, bool) -> Dict[str, str] # noqa
+    valdict = {}  # type: Dict[str, str]
+    locdict = {}  # type: Dict[str, List[str]]
     for k in searchlist:
         lkey = searchlist[k].get_key()
         if lkey in locdict:

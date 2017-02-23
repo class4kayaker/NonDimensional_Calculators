@@ -45,11 +45,12 @@ value pairs. The keys are the input values specified in the :ref:`config file
 An example yaml file is
 
 ::
-    -   
+
+    -
         input_int: 16
         input_float: 2.5
         input_string: Example
-    -   
+    -
         input_int: 8
         input_float: 4.0
         input_string: Example2
@@ -63,7 +64,51 @@ will exit with an error.
 Creating a Template
 -------------------
 
+The template parameter file is a standard parameter file with indicators for
+where to insert the specified computed values.
+
+On any key-value line, strings of the form ``{{{key}}}`` are replaced with the
+formatted version of the key ``key``.
+
+If the first line of the file is a comment, of the form ``FN: FMT`` this
+specifies a suggested filename format for the generated files where ``FMT`` is
+subjected to the same replacement procedure as in a key-value entry.
+
+A sample file of the dealIIPRM format is given below
+
+::
+
+    # FN: {{{fn}}}.prm
+
+    # Comment 1
+    set key1 = {{{key1}}}
+
+    # Comment 2
+    subsection Section
+        set key2 = {{{key2}}}
+    end
+
 .. _generator_config_file:
 
 Writing the YAML/JSON Configuration File
 ----------------------------------------
+
+The YAML/JSON configuration file specifies the data that must be collected to
+generate a new parameter file and how that data is to be manipulated for
+computing any derived quantities.
+
+A sample file for the template described above could be
+
+::
+
+    key1:
+        type: 'float'
+    key2:
+        type: 'expr'
+        expr: '2*key1'
+        fmt: '{:.4g}'
+    fn:
+        type: 'fname'
+        expr: 'Test_File_{key1}'
+
+The elements are specified in :ref:`construct_elems`

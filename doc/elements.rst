@@ -44,7 +44,7 @@ expr
     not required to depend on any other elements, and may therefore be used to
     specify constant values as expressions.
 
-    The required additional keys are keys are:
+    The required additional keys are:
 
     expr
         Mathematical expression used to compute the new value.
@@ -55,7 +55,7 @@ fmt
 
 fname
     Identical to ``fmt`` except with some basic standard replacements for
-    filename construction (ie ``.``, ``/`` and spaces are replaced with
+    filename construction (i.e. ``.``, ``/`` and spaces are replaced with
     underscores.)
 
 .. _location_elems:

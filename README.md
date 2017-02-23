@@ -9,6 +9,8 @@ Frequently it is desirable to quickly and accurately identify what values these
 have for a given problem parameter definition file supplied to a scientific
 code.
 
-The current script is obtains both the values of the source constants and the
-values of the non-dimensional parameters B, Ra for a specific case of Aspect
-parameter files for a density stratified problem.
+This utility is designed to handle general computation of the correct values
+from a parameter file using an appropriate configuration file as specified in
+the documentation. Currently only deal.II prm file format is supported, but the
+modular design should make it simple to extend to other formats when
+appropriate parsers have been added.

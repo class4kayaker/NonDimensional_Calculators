@@ -9,8 +9,8 @@ class PRMParser(PFileParser):
 
     @staticmethod
     def lines(fobj):
-        def parse_command(cline, lnum, position):
-            # type: (str, int, List[str]) -> PFileLine
+        def parse_command(cline, lnum, position, comment=""):
+            # type: (str, int, List[str], str) -> PFileLine
             if not parse_line:
                 return PFileLine(None, None, lnum=lnum)
 
@@ -27,6 +27,7 @@ class PRMParser(PFileParser):
                     position.append(remainder)
                     return PFileLine("Control",
                                      command+' '+remainder,
+                                     comment=comment,
                                      lnum=lnum,
                                      level=len(position)-1)
                 elif(command == 'end'):
@@ -38,6 +39,7 @@ class PRMParser(PFileParser):
                         raise ValueError()
                     return PFileLine("Control",
                                      command,
+                                     comment=comment,
                                      lnum=lnum,
                                      level=len(position))
                 elif(command == 'set'):
@@ -45,6 +47,7 @@ class PRMParser(PFileParser):
                     return PFileLine.keyvalueline(
                         ':'.join(position+[key.strip()]),
                         value.strip(),
+                        comment=comment,
                         lnum=lnum,
                         level=len(position))
                 else:
@@ -61,25 +64,32 @@ class PRMParser(PFileParser):
         linenum = 0
         for line in fobj:
             linenum += 1
+
             # Strip comments
+            comment = ""
             if '#' in line:
                 line, comment = line.split('#', 1)
-                yield PFileLine.commentline(
-                    comment.strip(),
-                    lnum=linenum)
+                comment = comment.strip()
                 if not line.strip():
+                    yield PFileLine.commentline(
+                        comment,
+                        lnum=linenum)
                     continue
 
             line = line.strip()
 
             if(line[-1:] == '\\'):
+                if (comment):
+                    yield PFileLine.commentline(
+                        comment,
+                        lnum=linenum)
                 parse_line += line[:-1].strip()+' '
                 continue
 
             parse_line += line
             parse_line = parse_line.strip()
 
-            yield parse_command(parse_line, linenum, position)
+            yield parse_command(parse_line, linenum, position, comment)
 
             parse_line = ""
 
@@ -97,15 +107,23 @@ class PRMParser(PFileParser):
         elif line.ltype == "Comment":
             return '# {}\n'.format(line.comment)
         elif line.ltype == "Control":
-            return ('{ind:<{ind_s}}{line}\n'
+            lout = ('{ind:<{ind_s}}{line}'
                     .format(ind='',
                             ind_s=2*line.level,
                             line=line.value))
+            if (line.comment):
+                lout += " # " + line.comment
+            lout += "\n"
+            return lout
         elif line.ltype == "KeyValue":
-            return ('{ind:<{indsp}}set {key} = {value}\n'
+            lout = ('{ind:<{indsp}}set {key} = {value}'
                     .format(ind='',
                             indsp=2*line.level,
                             key=line.value.key.rsplit(':', 1)[-1],
                             value=line.value.value))
+            if (line.comment):
+                lout += " # " + line.comment
+            lout += "\n"
+            return lout
         else:
             raise ValueError("Unknown linetype: {}".format(line.ltype))

@@ -40,10 +40,11 @@ class PFileLine:
                          level=level, lnum=lnum)
 
     @staticmethod
-    def keyvalueline(key, value, level=0, lnum=0):
-        # type: (str, str, int, int) -> PFileLine
+    def keyvalueline(key, value, level=0, lnum=0, comment=""):
+        # type: (str, str, int, int, str) -> PFileLine
         return PFileLine("KeyValue",
                          KeyValuePair(key, value),
+                         comment=comment,
                          level=level,
                          lnum=lnum)
 

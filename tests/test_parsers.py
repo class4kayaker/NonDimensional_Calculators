@@ -86,7 +86,7 @@ def test_parser_parse(parser, param_file):
 
 @pytest.mark.parametrize(
     "parser,param_file",
-    get_parser_tests(full_parser_list, '*_invalid.*'),
+    get_parser_tests(full_parser_list, 'invalid_*.test'),
     indirect=True
 )
 def test_parser_parse_invalid(parser, param_file, tmpdir):

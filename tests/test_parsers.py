@@ -2,7 +2,9 @@ import os.path
 import glob
 import pytest
 import difflib
+import six
 import sci_parameter_utils.parsers as parsers
+from io import StringIO
 
 full_parser_list = parsers.PFileParser._file_types.keys()
 
@@ -57,32 +59,29 @@ def assert_nodiff_files(f1, f2, maxlen=50):
 
 @pytest.mark.parametrize(
     "parser,param_file",
-    get_parser_tests(full_parser_list, '*_parse.*'),
+    get_parser_tests(full_parser_list, 'parse_*.test'),
     indirect=True
 )
-def test_parser_parse(parser, param_file, tmpdir):
-    cfn = 'out-c'
-    pfn = 'out-p'
-    with tmpdir.join(cfn).open('w') as cf, \
-            tmpdir.join(pfn).open('w') as pf:
-        for l in parser.lines(param_file):
-            cfmt = '# {}\n'
-            pfmt = '# L: {}\n'
-            if l.ltype == "KeyValue":
-                assert hasattr(l.value, 'key')
-                assert hasattr(l.value, 'value')
+def test_parser_parse(parser, param_file):
+    ifile = StringIO()
+    expect = StringIO()
+    produce = StringIO()
 
-            if l.ltype == "Comment":
-                if l.comment.startswith('L: '):
-                    cf.write(cfmt.format(l.comment))
-                else:
-                    pf.write(pfmt.format(str(l)))
-            else:
-                pf.write(pfmt.format(str(l)))
+    output = False
+    for line in param_file.readlines():
+        if line == "--{{{OUT}}}--\n":
+            output = True
+            continue
+        if output:
+            expect.write(six.text_type(line))
+        else:
+            ifile.write(six.text_type(line))
+    ifile.seek(0)
 
-    with tmpdir.join(cfn).open('r') as cf, \
-            tmpdir.join(pfn).open('r') as pf:
-        assert_nodiff_files(cf, pf)
+    for line in parser.lines(ifile):
+        produce.write(u"{!s}\n".format(line))
+
+    assert expect.getvalue() == produce.getvalue()
 
 
 @pytest.mark.parametrize(
@@ -132,51 +131,37 @@ def test_parser_typesetting_invalid(parser, line, error):
 
 @pytest.mark.parametrize(
     "parser,param_file",
-    get_parser_tests(full_parser_list, '*_rtrip.*'),
+    get_parser_tests(full_parser_list, 'rtrip_*.test'),
     indirect=True
 )
 def test_parser_rtrip_rw(parser, param_file, tmpdir):
-    fn1 = 'out'
-    param_file.seek(0, 0)
-    with tmpdir.join(fn1).open('w') as testfile:
-        for l in parser.lines(param_file):
-            testfile.write(parser.typeset_line(l))
-
-    del testfile
+    fexpect = StringIO(six.text_type(param_file.read()))
+    fproduce = StringIO()
 
     param_file.seek(0, 0)
-    with tmpdir.join(fn1).open('r') as testfile:
-        diff = ''.join(difflib.unified_diff(
-            param_file.readlines(),
-            testfile.readlines()))
-        assert '' == diff
+    for l in parser.lines(param_file):
+        fproduce.write(six.text_type(parser.typeset_line(l)))
+
+    assert fexpect.getvalue() == fproduce.getvalue()
 
 
 @pytest.mark.parametrize(
     "parser,param_file",
-    get_parser_tests(full_parser_list, '*_rtrip.*'),
+    get_parser_tests(full_parser_list, 'rtrip_*.test'),
     indirect=True
 )
 def test_parser_rtrip_rw2(parser, param_file, tmpdir):
-    fn1 = 'out'
-    fn2 = 'out2'
-    with tmpdir.join(fn1).open('w') as testfile:
-        for l in parser.lines(param_file):
-            testfile.write(parser.typeset_line(l))
+    fexpect = StringIO(six.text_type(param_file.read()))
+    f1trip = StringIO()
+    f2trip = StringIO()
 
-    with tmpdir.join(fn1).open('r') as testfile,\
-            tmpdir.join(fn2).open('w') as testfile2:
-        for l in parser.lines(testfile):
-            testfile2.write(parser.typeset_line(l))
+    param_file.seek(0)
+    for l in parser.lines(param_file):
+        f1trip.write(six.text_type(parser.typeset_line(l)))
 
-    del testfile
+    f1trip.seek(0)
+    for l in parser.lines(f1trip):
+        f2trip.write(six.text_type(parser.typeset_line(l)))
 
-    param_file.seek(0, 0)
-    with tmpdir.join(fn1).open('r') as testfile:
-        assert_nodiff_files(param_file, testfile)
-
-    del testfile
-
-    param_file.seek(0, 0)
-    with tmpdir.join(fn2).open('r') as testfile:
-        assert_nodiff_files(param_file, testfile)
+    assert fexpect.getvalue() == f1trip.getvalue()
+    assert fexpect.getvalue() == f2trip.getvalue()

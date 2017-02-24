@@ -1,0 +1,23 @@
+
+# Test comment
+set Key = 1
+
+
+# <Control [Line 6](0): subsection Sub>
+subsection Sub
+  # <KeyValue [Line 8](1): <Sub:Key = 2>>
+  set Key = 2
+# <Control [Line 10](0): end>
+end
+--{{{OUT}}}--
+<None [Line 1](0): None # >
+<Comment [Line 2](0): None # Test comment>
+<KeyValue [Line 3](0): <Key = 1> # >
+<None [Line 4](0): None # >
+<None [Line 5](0): None # >
+<Comment [Line 6](0): None # <Control [Line 6](0): subsection Sub>>
+<Control [Line 7](0): subsection Sub # >
+<Comment [Line 8](0): None # <KeyValue [Line 8](1): <Sub:Key = 2>>>
+<KeyValue [Line 9](1): <Sub:Key = 2> # >
+<Comment [Line 10](0): None # <Control [Line 10](0): end>>
+<Control [Line 11](0): end # >

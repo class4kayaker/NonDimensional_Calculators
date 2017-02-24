@@ -1,0 +1,36 @@
+
+
+\ # Comment 1
+set Key \
+    = 1
+\
+\
+\
+# Comment 2 \
+subsection \
+\
+\
+Sub
+  set \
+  \ # Comment 3
+  \
+Key\
+=\
+2
+\
+# Comment 4
+\
+\
+\
+end\
+--{{{OUT}}}--
+<None [Line 1](0): None # >
+<None [Line 2](0): None # >
+<Comment [Line 3](0): None # Comment 1>
+<KeyValue [Line 5](0): <Key = 1> # >
+<Comment [Line 9](0): None # Comment 2 \>
+<Control [Line 13](0): subsection Sub # >
+<Comment [Line 15](0): None # Comment 3>
+<KeyValue [Line 19](1): <Sub:Key = 2> # >
+<Comment [Line 21](0): None # Comment 4>
+<Control [Line 25](0): end # >

@@ -26,8 +26,7 @@ def do_replace(istr, values, to_fmt=False, repl_re=repl_re):
 
 
 def get_fn_suggest(tfile, parser, repl_re=repl_re):
-    # type: (Any, Type[PFileParser], Pattern) -> str
-    # type: (typing.io.IO, Type[PFileParser], Pattern) -> str
+    # type: (typing.TextIO, Type[PFileParser], Pattern) -> str
     tfile.seek(0, 0)
     sugg_re = re.compile('FN:\s+(\S+)')
     lgen = parser.lines(tfile)
@@ -45,8 +44,7 @@ class ParserError(Exception):
 
 
 def do_template(tfile, ofile, parser, values, repl_re=repl_re):
-    # type: (Any, Any, Type[PFileParser], Dict[str, str], Pattern) -> None # noqa
-    # type: (typing.io.IO, typing.io.IO, PFileParser, Dict[str, str], Pattern) -> None # noqa
+    # type: (typing.TextIO, typing.TextIO, Type[PFileParser], Dict[str, str], Pattern) -> None # noqa
     tfile.seek(0, 0)
     for l in parser.lines(tfile):
         if l.ltype == 'KeyValue':
@@ -66,8 +64,7 @@ class MissingValues(Exception):
 
 
 def do_search(searchlist, ifile, parser, findall=True):
-    # type: (Dict[str, SearchElem], Any, Type[PFileParser], bool) -> Dict[str, str] # noqa
-    # type: (Dict[str, SearchElem], typing.io.IO, Type[PFileParser], bool) -> Dict[str, str] # noqa
+    # type: (Dict[str, SearchElem], typing.TextIO, Type[PFileParser], bool) -> Dict[str, str] # noqa
     valdict = {}  # type: Dict[str, str]
     locdict = {}  # type: Dict[str, List[str]]
     for k in searchlist:

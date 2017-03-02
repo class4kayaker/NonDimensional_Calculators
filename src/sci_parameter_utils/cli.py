@@ -58,8 +58,7 @@ def cli_main():
               help="List names of output files only")
 @click.argument('template', type=click.File('r'))
 def template(params, ifile, out, template, interact, list_fns):
-    # type: (Any, Any, Any, Any, bool, bool) -> None
-    # type: (typing.io.IO, typing.io.IO, typing.io.IO, typing.io.IO, bool, bool) -> None # noqa
+    # type: (typing.TextIO, typing.TextIO, str, typing.TextIO, bool, bool) -> None # noqa
     """Generate parameter files from TEMPLATE"""
     try:
         eset = sci_parameter_utils.fragment.TemplateElemSet(
@@ -144,7 +143,7 @@ def template(params, ifile, out, template, interact, list_fns):
               help="List of sections to print")
 @click.argument('prmfiles', type=click.File('r'), nargs=-1)
 def print_vals(prmfiles, deffile, olist):
-    # type: (Any, Any, str) -> None
+    # type: (List[typing.TextIO], typing.TextIO, str) -> None
     """Prints values from PRMFILES"""
     try:
         idict = get_dict_from_file(deffile)

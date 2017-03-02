@@ -29,7 +29,9 @@
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc','sphinxcontrib.programoutput']
+extensions = ['sphinx.ext.autodoc',
+              'sphinx.ext.napoleon',
+              'sphinxcontrib.programoutput']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -145,8 +147,8 @@ html_theme = 'alabaster'
 # html_logo = None
 
 # The name of an image file (relative to this directory) to use as a favicon of
-# the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
-# pixels large.
+# the docs.  This file should be a Windows icon file (.ico) being
+# 16x16 or 32x32 pixels large.
 #
 # html_favicon = None
 
@@ -259,7 +261,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'sci-parameter-utils.tex', u'sci-parameter-utils Documentation',
+    (master_doc, 'sci-parameter-utils.tex',
+     u'sci-parameter-utils Documentation',
      u'Jonathan Robey', 'manual'),
 ]
 

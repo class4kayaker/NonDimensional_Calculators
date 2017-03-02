@@ -6,13 +6,15 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   Reading parameter files <print>
-   Generating parameter files <generate>
+   Reading Parameter Files <print>
+   Generating Parameter Files <generate>
+   Supported Formats <formats>
+   Parameter File Parsers <parsers>
    Configuration Elements <elements>
 
 
 
-Indices and tables
+Indices and Tables
 ==================
 
 * :ref:`genindex`
